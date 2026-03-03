@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -37,15 +38,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Ticket::class, orphanRemoval: true)]
     private $tickets;
-    
+
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Role $profile = null;
 
+    /**
+     * @var Collection<int, Ticket>
+     */
+    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'createdby')]
+    private Collection $ticketsby;
+
     public function __construct()
     {
         $this->tickets = new ArrayCollection();
+        $this->ticketsby = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -66,7 +74,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * A visual identifier that represents this user.
      *
      * @see UserInterface
      */
@@ -131,10 +138,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return array_unique($roles);
 
-
     }
 
+/**
+     * @return Collection<int, Ticket>
+     */
+    public function getTickets(): Collection
+    {
+        return $this->tickets;
+    }
 
+    public function addTicket(Ticket $ticket): static
+    {
+        if (!$this->tickets->contains($ticket)) {
+            $this->tickets->add($ticket);
+            $ticket->setUser($this);
+        }
+        return $this;
+    }
+
+    public function removeTicket(Ticket $ticket): static
+    {
+        if ($this->tickets->removeElement($ticket)) {
+            if ($ticket->getUser() === $this) {
+                $ticket->setUser(null);
+            }
+        }
+        return $this;
+    }
 
     /**
      * Ensure the session doesn't contain actual password hashes by CRC32C-hashing them, as supported since Symfony 7.3.
@@ -145,5 +176,37 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
 
         return $data;
+    }
+
+
+
+    /**
+     * @return Collection<int, Ticket>
+     */
+    public function getTicketsby(): Collection
+    {
+        return $this->ticketsby;
+    }
+
+    public function addTicketsby(Ticket $ticketsby): static
+    {
+        if (!$this->ticketsby->contains($ticketsby)) {
+            $this->ticketsby->add($ticketsby);
+            $ticketsby->setCreatedby($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTicketsby(Ticket $ticketsby): static
+    {
+        if ($this->ticketsby->removeElement($ticketsby)) {
+            // set the owning side to null (unless already changed)
+            if ($ticketsby->getCreatedby() === $this) {
+                $ticketsby->setCreatedby(null);
+            }
+        }
+
+        return $this;
     }
 }

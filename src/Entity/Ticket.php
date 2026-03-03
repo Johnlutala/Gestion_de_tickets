@@ -41,6 +41,24 @@ class Ticket
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\Column]
+    private ?bool $enabled = null;
+
+    #[ORM\Column]
+    private ?bool $deleted = null;
+
+    #[ORM\ManyToOne(inversedBy: 'ticketsby')]
+    private ?User $createdby = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $year = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $month = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $quarter = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -138,6 +156,78 @@ class Ticket
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function isEnabled(): ?bool
+    {
+        return $this->enabled;
+    }
+
+    public function setEnabled(bool $enabled): static
+    {
+        $this->enabled = $enabled;
+
+        return $this;
+    }
+
+    public function isDeleted(): ?bool
+    {
+        return $this->deleted;
+    }
+
+    public function setDeleted(bool $deleted): static
+    {
+        $this->deleted = $deleted;
+
+        return $this;
+    }
+
+    public function getCreatedby(): ?User
+    {
+        return $this->createdby;
+    }
+
+    public function setCreatedby(?User $createdby): static
+    {
+        $this->createdby = $createdby;
+
+        return $this;
+    }
+
+    public function getYear(): ?int
+    {
+        return $this->year;
+    }
+
+    public function setYear(?int $year): static
+    {
+        $this->year = $year;
+
+        return $this;
+    }
+
+    public function getMonth(): ?int
+    {
+        return $this->month;
+    }
+
+    public function setMonth(?int $month): static
+    {
+        $this->month = $month;
+
+        return $this;
+    }
+
+    public function getQuarter(): ?int
+    {
+        return $this->quarter;
+    }
+
+    public function setQuarter(?int $quarter): static
+    {
+        $this->quarter = $quarter;
 
         return $this;
     }
