@@ -9,11 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: "tb_user")]
-class User
+class User implements UserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'bigint')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -28,15 +28,15 @@ class User
     /**
      * @var Collection<int, Ticket>
      */
-    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'user_id', orphanRemoval: true)]
-    private Collection $ticket_id;
+    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $tickets;
 
     #[ORM\ManyToOne(inversedBy: 'user_id')]
     private ?Role $profile = null;
 
     public function __construct()
     {
-        $this->ticket_id = new ArrayCollection();
+        $this->tickets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -79,21 +79,21 @@ class User
 
         return $this;
     }
-   
+
 
     /**
      * @return Collection<int, Ticket>
      */
-    public function getTicketId(): Collection
+    public function getTickets(): Collection
     {
-        return $this->ticket_id;
+        return $this->tickets;
     }
 
     public function addTicketId(Ticket $ticketId): static
     {
-        if (!$this->ticket_id->contains($ticketId)) {
-            $this->ticket_id->add($ticketId);
-            $ticketId->setUserId($this);
+        if (!$this->tickets->contains($ticketId)) {
+            $this->tickets->add($ticketId);
+            $ticketId->setUser($this);
         }
 
         return $this;
@@ -101,10 +101,10 @@ class User
 
     public function removeTicketId(Ticket $ticketId): static
     {
-        if ($this->ticket_id->removeElement($ticketId)) {
+        if ($this->tickets->removeElement($ticketId)) {
             // set the owning side to null (unless already changed)
-            if ($ticketId->getUserId() === $this) {
-                $ticketId->setUserId(null);
+            if ($ticketId->getUser() === $this) {
+                $ticketId->setUser(null);
             }
         }
 
@@ -122,4 +122,16 @@ class User
 
         return $this;
     }
+
+    public function getRoles(): array {
+        $roles = ['ROLE_USER'];
+
+        $privileges = $this->profile->getPrivileges();
+        foreach ($privileges as $privilege) {
+            $roles[] = 'ROLE_' . strtoupper($privilege->getName());
+        }
+
+        return $roles;
+    }
+
 }

@@ -25,12 +25,12 @@ class Privilege
     /**
      * @var Collection<int, Role>
      */
-    #[ORM\ManyToMany(targetEntity: Role::class, mappedBy: 'privilege')]
-    private Collection $role_id;
+    #[ORM\ManyToMany(targetEntity: Role::class, mappedBy: 'privileges')]
+    private Collection $roles;
 
     public function __construct()
     {
-        $this->role_id = new ArrayCollection();
+        $this->roles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -65,25 +65,25 @@ class Privilege
     /**
      * @return Collection<int, Role>
      */
-    public function getRoleId(): Collection
+    public function getRoles(): Collection
     {
-        return $this->role_id;
+        return $this->roles;
     }
 
-    public function addRoleId(Role $roleId): static
+    public function addRole(Role $role): static
     {
-        if (!$this->role_id->contains($roleId)) {
-            $this->role_id->add($roleId);
-            $roleId->addPrivilege($this);
+        if (!$this->roles->contains($role)) {
+            $this->roles->add($role);
+            $role->addPrivilege($this);
         }
 
         return $this;
     }
 
-    public function removeRoleId(Role $roleId): static
+    public function removeRole(Role $role): static
     {
-        if ($this->role_id->removeElement($roleId)) {
-            $roleId->removePrivilege($this);
+        if ($this->roles->removeElement($role)) {
+            $role->removePrivilege($this);
         }
 
         return $this;

@@ -13,7 +13,7 @@ class Application
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'bigint')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -28,12 +28,12 @@ class Application
     /**
      * @var Collection<int, Ticket>
      */
-    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'application_id', orphanRemoval: true)]
-    private Collection $ticket_id;
+    #[ORM\OneToMany(targetEntity: Ticket::class, mappedBy: 'application', orphanRemoval: true)]
+    private Collection $tickets;
 
     public function __construct()
     {
-        $this->ticket_id = new ArrayCollection();
+        $this->tickets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -80,27 +80,27 @@ class Application
     /**
      * @return Collection<int, Ticket>
      */
-    public function getTicketId(): Collection
+    public function getTickets(): Collection
     {
-        return $this->ticket_id;
+        return $this->tickets;
     }
 
-    public function addTicketId(Ticket $ticketId): static
+    public function addTicket(Ticket $ticket): static
     {
-        if (!$this->ticket_id->contains($ticketId)) {
-            $this->ticket_id->add($ticketId);
-            $ticketId->setApplicationId($this);
+        if (!$this->tickets->contains($ticket)) {
+            $this->tickets->add($ticket);
+            $ticket->setApplication($this);
         }
 
         return $this;
     }
 
-    public function removeTicketId(Ticket $ticketId): static
+    public function removeTicket(Ticket $ticket): static
     {
-        if ($this->ticket_id->removeElement($ticketId)) {
+        if ($this->tickets->removeElement($ticket)) {
             // set the owning side to null (unless already changed)
-            if ($ticketId->getApplicationId() === $this) {
-                $ticketId->setApplicationId(null);
+            if ($ticket->getApplication() === $this) {
+                $ticket->setApplication(null);
             }
         }
 

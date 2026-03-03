@@ -11,35 +11,35 @@ class Ticket
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(type: 'bigint')]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private ?string $title = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(type:'text')]
     private ?string $description = null;
 
 
     #[ORM\Column(length: 50)]
     private ?string $marchand = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $note = null;
+    #[ORM\Column]
+    private ?int $note = null;
 
     #[ORM\Column]
     private ?bool $noted = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $comment = null;
 
-    #[ORM\ManyToOne(inversedBy: 'ticket_id')]
+    #[ORM\ManyToOne(inversedBy: 'tickets')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?Application $application_id = null;
+    private ?Application $application = null;
 
-    #[ORM\ManyToOne(inversedBy: 'ticket_id')]
+    #[ORM\ManyToOne(inversedBy: 'tickets')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $user_id = null;
+    private ?User $user = null;
 
     public function getId(): ?int
     {
@@ -118,26 +118,26 @@ class Ticket
         return $this;
     }
 
-    public function getApplicationId(): ?Application
+    public function getApplication(): ?Application
     {
-        return $this->application_id;
+        return $this->application;
     }
 
-    public function setApplicationId(?Application $application_id): static
+    public function setApplication(?Application $application): static
     {
-        $this->application_id = $application_id;
+        $this->application = $application;
 
         return $this;
     }
 
-    public function getUserId(): ?User
+    public function getUser(): ?User
     {
-        return $this->user_id;
+        return $this->user;
     }
 
-    public function setUserId(?User $user_id): static
+    public function setUser(?User $user): static
     {
-        $this->user_id = $user_id;
+        $this->user = $user;
 
         return $this;
     }

@@ -23,18 +23,18 @@ class Role
      * @var Collection<int, User>
      */
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'profile')]
-    private Collection $user_id;
+    private Collection $users;
 
     /**
      * @var Collection<int, Privilege>
      */
-    #[ORM\ManyToMany(targetEntity: Privilege::class, inversedBy: 'role_id')]
-    private Collection $privilege;
+    #[ORM\ManyToMany(targetEntity: Privilege::class)]
+    private Collection $privileges;
 
     public function __construct()
     {
-        $this->user_id = new ArrayCollection();
-        $this->privilege = new ArrayCollection();
+        $this->users = new ArrayCollection();
+        $this->privileges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -57,15 +57,15 @@ class Role
     /**
      * @return Collection<int, User>
      */
-    public function getUserId(): Collection
+    public function getUsers(): Collection
     {
-        return $this->user_id;
+        return $this->users;
     }
 
     public function addUserId(User $userId): static
     {
-        if (!$this->user_id->contains($userId)) {
-            $this->user_id->add($userId);
+        if (!$this->users->contains($userId)) {
+            $this->users->add($userId);
             $userId->setProfile($this);
         }
 
@@ -74,7 +74,7 @@ class Role
 
     public function removeUserId(User $userId): static
     {
-        if ($this->user_id->removeElement($userId)) {
+        if ($this->users->removeElement($userId)) {
             // set the owning side to null (unless already changed)
             if ($userId->getProfile() === $this) {
                 $userId->setProfile(null);
@@ -87,15 +87,15 @@ class Role
     /**
      * @return Collection<int, Privilege>
      */
-    public function getPrivilege(): Collection
+    public function getPrivileges(): Collection
     {
-        return $this->privilege;
+        return $this->privileges;
     }
 
     public function addPrivilege(Privilege $privilege): static
     {
-        if (!$this->privilege->contains($privilege)) {
-            $this->privilege->add($privilege);
+        if (!$this->privileges->contains($privilege)) {
+            $this->privileges->add($privilege);
         }
 
         return $this;
@@ -103,7 +103,7 @@ class Role
 
     public function removePrivilege(Privilege $privilege): static
     {
-        $this->privilege->removeElement($privilege);
+        $this->privileges->removeElement($privilege);
 
         return $this;
     }
