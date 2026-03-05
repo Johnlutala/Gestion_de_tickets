@@ -64,11 +64,12 @@
 			<script src={{ asset("assets/js/pages/index.js") }}></script>
 
 			<script>
-				document.addEventListener('DOMContentLoaded', function() {
-					if (window.jQuery) {
+				// remove theme submit blocker as soon as jQuery is ready
+				if (window.jQuery) {
+					$(function() {
 						$('#user-form').off('submit');
-					}
-				});
+					});
+				}
 			</script>
 		</body>
 	</html>
