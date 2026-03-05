@@ -28,7 +28,10 @@ class Role
     /**
      * @var Collection<int, Privilege>
      */
-    #[ORM\ManyToMany(targetEntity: Privilege::class)]
+    #[ORM\ManyToMany(targetEntity: Privilege::class, inversedBy: 'roles')]
+    #[ORM\JoinTable(name: 'role_privilege')]
+    #[ORM\JoinColumn(name: 'role_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'privilege_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Collection $privileges;
 
     public function __construct()

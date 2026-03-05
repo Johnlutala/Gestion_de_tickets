@@ -3,7 +3,6 @@
 namespace App\Form;
 
 use App\Entity\Privilege;
-use App\Entity\Role;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -30,27 +29,7 @@ class PrivilegeType extends AbstractType
                     ),
                 ],
             ])
-            // Champ de description
-            ->add('description', TextareaType::class, [
-                'label' => 'Description',
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Entrez une description',
-                    'rows' => 3,
-                ],
-            ])
-            // Champ roles lié à l'entité Role
-            ->add('roles', EntityType::class, [
-                'class' => Role::class,
-                'choice_label' => 'nom', // afficher le nom du rôle
-                'label' => 'Rôles associés',
-                'multiple' => true, // permettre de sélectionner plusieurs rôles
-                'expanded' => true, // cases à cocher
-                'attr' => [
-                    'class' => 'form-check',
-                ],
-                'required' => true,
-            ])
+            // Champ de description\n            ->add('description', TextareaType::class, [\n                'label' => 'Description',\n                'attr' => [\n                    'class' => 'form-control',\n                    'placeholder' => 'Entrez une description',\n                    'rows' => 3,\n                ],\n            ])
         ;
     }
 
