@@ -82,7 +82,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return (string) $this->username;
     }
 
-
     /**
      * @param list<string> $roles
      */

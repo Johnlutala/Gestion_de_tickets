@@ -3,7 +3,34 @@
 {% block title %}-Page Accueil{% endblock %}
 
 {% block body %}
-<div class="container">
-    <h1 class="text-center mt-5">Page d'accueil</h1>
-</div>
+<!-- Main Content -->
+	<section class="content">
+		<div class="">
+			<div class="block-header">
+				<div class="row">
+					<div class="col-lg-7 col-md-6 col-sm-12">
+						<h2>Dashboard</h2>
+						<ul class="breadcrumb">
+							<li class="breadcrumb-item">
+								<a href="{{ path("app_home_index") }}">
+									<i class="zmdi zmdi-home"></i>
+									Menu</a>
+							</li>
+							<li class="breadcrumb-item active">Dashboard</li>
+						</ul>
+						<button class="btn btn-primary btn-icon mobile_menu" type="button">
+							<i class="zmdi zmdi-sort-amount-desc"></i>
+						</button>
+					</div>
+					<div class="col-lg-5 col-md-6 col-sm-12">
+						<button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button">
+							<i class="zmdi zmdi-arrow-right"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</section>
+
 {% endblock %}

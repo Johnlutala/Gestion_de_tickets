@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Privilege{% endblock %}
+
+{% block body %}
+    <h1>Edit Privilege</h1>
+
+    {{ include('privilege/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_privilege_index') }}">back to list</a>
+
+    {{ include('privilege/_delete_form.html.twig') }}
+{% endblock %}
