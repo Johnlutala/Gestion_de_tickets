@@ -1,30 +1,74 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Privilege{% endblock %}
+{% block title %}Détails du privilège - {{ privilege.name }}{% endblock %}
 
 {% block body %}
-    <h1>Privilege</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ privilege.id }}</td>
-            </tr>
-            <tr>
-                <th>Name</th>
-                <td>{{ privilege.name }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ privilege.description }}</td>
-            </tr>
-        </tbody>
-    </table>
+	<div class="container py-4">
 
-    <a href="{{ path('app_privilege_index') }}">back to list</a>
+		<div class="card shadow-sm border-0 rounded-3">
+			<div class="card-body py-4 px-4">
+				<h5 class="fw-semibold mb-3 text-secondary">
+					<i class="ti ti-key me-2 text-primary"></i>
+					Détails du privilège
+				</h5>
 
-    <a href="{{ path('app_privilege_edit', {'id': privilege.id}) }}">edit</a>
+				<div class="row mb-4">
+					<div class="col-md-4">
+						<label class="form-label fw-bold text-muted">ID</label>
+						<p class="fs-6">{{ privilege.id }}</p>
+					</div>
 
-    {{ include('privilege/_delete_form.html.twig') }}
+					<div class="col-md-4">
+						<label class="form-label fw-bold text-muted">Nom du privilège</label>
+						<p class="fs-6">
+							<span class="badge bg-success fs-6">{{ privilege.name }}</span>
+						</p>
+					</div>
+
+					<div class="col-md-4">
+						<label class="form-label fw-bold text-muted">Description</label>
+						<p class="fs-6">{{ privilege.description }}</p>
+					</div>
+				</div>
+
+				<hr>
+
+				<h6 class="fw-bold mb-3">Rôles asocierés</h6>
+				<div class="mb-4">
+					{% if privilege.roles|length > 0 %}
+						<div class="d-flex flex-wrap gap-2">
+							{% for role in privilege.roles %}
+								<span class="badge bg-info text-dark p-2">
+									<i class="bi bi-shield-check me-1"></i>{{ role.nom }}
+								</span>
+							{% endfor %}
+						</div>
+					{% else %}
+						<div class="alert alert-info">
+							<i class="bi bi-info-circle me-2"></i>
+							Aucun rôle n'est associé à ce privilège.
+						</div>
+					{% endif %}
+				</div>
+
+				<div class="mt-4 pt-3 border-top">
+					<a href="{{ path('app_privilege_index') }}" class="btn btn-secondary btn-sm">
+						<i class="bi bi-arrow-left me-1"></i>Retour
+					</a>
+					<a href="{{ path('app_privilege_edit', {'id': privilege.id}) }}" class="btn btn-primary btn-sm">
+						<i class="bi bi-pencil me-1"></i>Modifier
+					</a>
+					<form method="post" action="{{ path('app_privilege_delete', {'id': privilege.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce privilège ?');" class="d-inline">
+						<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ privilege.id) }}">
+						<button type="submit" class="btn btn-danger btn-sm">
+							<i class="bi bi-trash me-1"></i>Supprimer
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
 {% endblock %}

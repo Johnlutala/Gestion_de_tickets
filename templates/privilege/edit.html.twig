@@ -1,13 +1,23 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Privilege{% endblock %}
+{% block title %}
+	Modifier le privilège - {{ privilege.name }}
+{% endblock %}
 
 {% block body %}
-    <h1>Edit Privilege</h1>
 
-    {{ include('privilege/_form.html.twig', {'button_label': 'Update'}) }}
+	<div class="container py-4">
 
-    <a href="{{ path('app_privilege_index') }}">back to list</a>
+		<div class="card shadow-sm border-0 rounded-3">
+			<div class="card-body py-4 px-4">
+				<h5 class="fw-semibold mb-3 text-secondary">
+					<i class="ti ti-pencil me-2 text-primary"></i>
+					Modification du privilège
+				</h5>
 
-    {{ include('privilege/_delete_form.html.twig') }}
+				{{ include('privilege/_form.html.twig') }}
+			</div>
+		</div>
+
+	</div>
 {% endblock %}

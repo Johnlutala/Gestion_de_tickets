@@ -1,37 +1,98 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Privilege index{% endblock %}
+{% block title %}Liste des privilèges{% endblock %}
 
 {% block body %}
-    <h1>Privilege index</h1>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for privilege in privileges %}
-            <tr>
-                <td>{{ privilege.id }}</td>
-                <td>{{ privilege.name }}</td>
-                <td>{{ privilege.description }}</td>
-                <td>
-                    <a href="{{ path('app_privilege_show', {'id': privilege.id}) }}">show</a>
-                    <a href="{{ path('app_privilege_edit', {'id': privilege.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+	<div class="container">
 
-    <a href="{{ path('app_privilege_new') }}">Create new</a>
+		<div class="card mb-4">
+
+			<div class="card-body">
+
+				<div class="d-flex justify-content-between align-items-center mb-3">
+
+					<div>
+						<h4 class="fw-bold mb-0">
+							<i class="bi bi-key text-primary me-2"></i>
+							Liste des privilèges
+						</h4>
+						<small class="text-muted">Gestion des droits d'accès</small>
+					</div>
+
+					<a href="{{ path('app_privilege_new') }}" class="btn btn-primary btn-sm">
+						<i class="bi bi-plus-circle me-1"></i>
+						Nouveau privilège
+					</a>
+
+				</div>
+
+				<div class="table-responsive">
+					<table class="table table-hover align-middle">
+
+						<thead class="table-light">
+							<tr>
+								<th>#</th>
+								<th>Nom du privilège</th>
+								<th>Description</th>
+								<th class="text-end">Actions</th>
+							</tr>
+						</thead>
+
+						<tbody>
+							{% for privilege in privileges %}
+								<tr>
+									<td>{{ loop.index }}</td>
+									<td>
+										<div class="fw-semibold">
+											<span class="badge bg-success">{{ privilege.name }}</span>
+										</div>
+									</td>
+									<td>
+										<small class="text-muted">{{ privilege.description }}</small>
+									</td>
+									<td>
+										<div class="d-flex justify-content-end">
+											<div class="dropdown">
+												<button type="button" class="btn p-0 dropdown-toggle" data-toggle="dropdown">
+													<i class="bx bx-dots-vertical-rounded"></i>
+												</button>
+												<div class="dropdown-menu">
+													<a href="{{ path('app_privilege_show', {'id': privilege.id}) }}" class="dropdown-item">
+														<i class="ti ti-eye me-1"></i>Voir
+													</a>
+													<a href="{{ path('app_privilege_edit', {'id': privilege.id}) }}" class="dropdown-item">
+														<i class="ti ti-pencil me-1"></i>Modifier
+													</a>
+													<form method="post" action="{{ path('app_privilege_delete', {'id': privilege.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce privilège ?');">
+														<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ privilege.id) }}">
+														<button type="submit" class="dropdown-item text-danger">
+															<i class="ti ti-trash me-1"></i>Supprimer
+														</button>
+													</form>
+												</div>
+											</div>
+										</div>
+									</td>
+								</tr>
+							{% else %}
+								<tr>
+									<td colspan="4" class="text-center text-muted py-4">
+										<i class="bi bi-key text-muted fs-3 d-block mb-2"></i>
+										Aucun privilège trouvé.
+									</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+
+					</table>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
 {% endblock %}
