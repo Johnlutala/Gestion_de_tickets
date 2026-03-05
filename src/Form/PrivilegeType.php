@@ -29,7 +29,15 @@ class PrivilegeType extends AbstractType
                     ),
                 ],
             ])
-            // Champ de description\n            ->add('description', TextareaType::class, [\n                'label' => 'Description',\n                'attr' => [\n                    'class' => 'form-control',\n                    'placeholder' => 'Entrez une description',\n                    'rows' => 3,\n                ],\n            ])
+            // Champ de description
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Entrez une description',
+                    'rows' => 3,
+                ],
+            ])
         ;
     }
 

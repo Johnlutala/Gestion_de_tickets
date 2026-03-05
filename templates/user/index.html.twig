@@ -56,20 +56,27 @@
 									<td>
 
 										{% if user.profile %}
-											<span class="badge bg-info text-dark">{{ user.profile.nom }}</span>
+											<span class="badge bg-primary text-white" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
+												<i class="bi bi-shield-lock me-1"></i>
+												{{ user.profile.nom }}
+											</span>
 										{% else %}
-											<span class="text-muted small">Aucun profil</span>
+											<span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Aucun profil</span>
 										{% endif %}
 									</td>
 									<td>
 										{% if user.profile %}
 											{% set privileges = user.profile.privileges %}
 											{% if privileges|length > 0 %}
-												{% for privilege in privileges %}
-													<span class="badge bg-secondary me-1">{{ privilege.name }}</span>
-												{% endfor %}
+												<div class="d-flex flex-wrap gap-1">
+													{% for privilege in privileges %}
+														<span class="badge bg-success text-white" style="font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+															<i class="bi bi-check-circle me-1"></i>{{ privilege.name }}
+														</span>
+													{% endfor %}
+												</div>
 											{% else %}
-												<span class="text-muted small">Aucun privilège</span>
+												<span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Aucun privilège</span>
 											{% endif %}
 										{% else %}
 											<span class="text-muted small">—</span>

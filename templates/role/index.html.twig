@@ -48,11 +48,15 @@
 									</td>
 									<td>
 										{% if role.privileges|length > 0 %}
-											{% for privilege in role.privileges %}
-												<span class="badge bg-success me-1">{{ privilege.name }}</span>
-											{% endfor %}
+											<div class="d-flex flex-wrap gap-1">
+												{% for privilege in role.privileges %}
+													<span class="badge bg-success text-white" style="font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+														<i class="bi bi-check-circle me-1"></i>{{ privilege.name }}
+													</span>
+												{% endfor %}
+											</div>
 										{% else %}
-											<span class="text-muted small">Aucun privilège assigné</span>
+											<span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Aucun privilège assigné</span>
 										{% endif %}
 									</td>
 									<td>

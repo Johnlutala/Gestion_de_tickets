@@ -10,8 +10,17 @@
 
 	{# Privilèges #}
 	<div class="col-md-6 mb-3">
-		{{ form_label(form.privileges, "Privilèges", {'label_attr': {'class': 'form-label fw-bold'}}) }}
-		{{ form_widget(form.privileges, {'attr': {'class': 'form-control ms'}}) }}
+		<label class="form-label fw-bold">Privilèges</label>
+		<div class="border rounded p-3" style="background-color: #f8f9fa;">
+			{% for privilege in form.privileges %}
+				<div class="form-check mb-2">
+					{{ form_widget(privilege, {'attr': {'class': 'form-check-input'}}) }}
+					<label class="form-check-label text-dark" for="{{ privilege.vars.id }}">
+						{{ privilege.vars.label }}
+					</label>
+				</div>
+			{% endfor %}
+		</div>
 		{{ form_errors(form.privileges) }}
 	</div>
 </div>

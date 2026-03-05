@@ -36,10 +36,7 @@ class RoleType extends AbstractType
                 'choice_label' => 'name', // afficher le nom du privilège
                 'label' => 'Privilèges associés',
                 'multiple' => true, // permet plusieurs sélections
-                'expanded' => false, // liste déroulante multi-sélection
-                'attr' => [
-                    'class' => 'form-control ms',
-                ],
+                'expanded' => true, // checkboxes au lieu de liste déroulante
                 'required' => false,
             ])
         ;
