@@ -1,27 +1,23 @@
-{{ form_start(form, {'attr': {'class': 'p-4 rounded shadow-sm bg-white'}}) }}
 
-<h5 class="mb-4 text-muted border-bottom pb-2">Informations de compte</h5>
-
-<div
-	class="row">
+{{ form_start(form, {'attr': {'class': 'p-3 rounded shadow-sm bg-white'}}) }}
+<div class="row">
 	{# Nom d'utilisateur #}
 	<div class="col-md-6 mb-3">
 		{{ form_label(form.username, "Nom d'utilisateur", {'label_attr': {'class': 'form-label fw-bold'}}) }}
-		{{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Ex: admin@gmail.com'}}) }}
+		{{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Ex: john.jk'}}) }}
 		{{ form_errors(form.username) }}
 	</div>
 
 	{# Profil / Rôle #}
 	<div class="col-md-6 mb-3">
-			{{ form_label(form.profile, 'Profil / Rôle', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-			{{ form_widget(form.profile, {'attr': {'class': 'form-control ms'}}) }}
+			{{ form_label(form.profile, 'Profile', {'label_attr': {'class': 'form-label'}}) }}
+			{{ form_widget(form.profile, {'attr': {'class': 'form-select ms'}}) }}
 			{{ form_errors(form.profile) }}
 
 	</div>
 </div>
 
-<div
-	class="row mt-2">
+<div class="row mt-2">
 	{# Mot de passe #}
 	<div class="col-md-6 mb-3">
 		{{ form_label(form.plainPassword.first, "Mot de passe", {'label_attr': {'class': 'form-label fw-bold'}}) }}
@@ -40,7 +36,7 @@
 <hr class="my-4">
 
 <div class="d-flex justify-content-between align-items-center">
-	<a href="#" class="text-decoration-none text-secondary">
+	<a href="{{ path("app_user_index") }}" class="text-decoration-none text-secondary">
 		<i class="bi bi-arrow-left"></i>
 		Retour
 	</a>
