@@ -32,6 +32,9 @@ class AppFixtures extends Fixture
         $privilege->setDescription('Permet de créer des tickets');
         $manager->persist($privilege);
 
+        // Lier le privilège au rôle
+        $profile->addPrivilege($privilege);
+
         // Créer l'admin
         $admin = new User();
         $admin->setUsername('johnkisina');
@@ -39,7 +42,6 @@ class AppFixtures extends Fixture
         $admin->setProfile($profile); // IMPORTANT
         $manager->persist($admin);
 
-        $manager->flush();
         $manager->flush();
 
 

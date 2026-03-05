@@ -35,13 +35,11 @@
 							<tr>
 								<th>#</th>
 								<th>Nom d'utilisateur</th>
-								<th>Rôles</th>
-								<th>Privileges</th>
+								<th>Profil (Rôle)</th>
+								<th>Privilèges</th>
 								<th class="text-end">Actions</th>
 							</tr>
 						</thead>
-
-						<tbody>
 
 							{% for user in users %}
 
@@ -57,31 +55,11 @@
 
 									<td>
 
-										{% for role in user.roles %}
-
-											{% if role == 'ROLE_ADMIN' %}
-												<span class="badge bg-danger me-1">
-													Administrateur
-												</span>
-
-											{% elseif role == 'ROLE_USER' %}
-												<span class="badge bg-primary me-1">
-													Utilisateur
-												</span>
-
-											{% elseif role == 'ROLE_CAISSIER' %}
-												<span class="badge bg-warning text-dark me-1">
-													Caissier
-												</span>
-
-											{% else %}
-												<span class="badge bg-light text-dark me-1">
-													{{ role }}
-												</span>
-
-											{% endif %}
-
-										{% endfor %}
+										{% if user.profile %}
+											<span class="badge bg-info text-dark">{{ user.profile.nom }}</span>
+										{% else %}
+											<span class="text-muted small">Aucun profil</span>
+										{% endif %}
 									</td>
 									<td>
 										{% if user.profile %}
@@ -91,10 +69,10 @@
 													<span class="badge bg-secondary me-1">{{ privilege.name }}</span>
 												{% endfor %}
 											{% else %}
-												<span class="text-muted">Aucun privilège attribué</span>
+												<span class="text-muted small">Aucun privilège</span>
 											{% endif %}
 										{% else %}
-											<span class="text-muted">Aucun rôle attribué</span>
+											<span class="text-muted small">—</span>
 										{% endif %}
 									</td>
 									<td>
