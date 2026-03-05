@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/privilege', name: 'app_privilege_')]
 final class PrivilegeController extends AbstractController
 { 
-    #[Route(name: '', methods: ['GET'])]
+    #[Route(name: 'index', methods: ['GET'])]
     public function index(PrivilegeRepository $privilegeRepository): Response
     {
         return $this->render('privilege/index.html.twig', [
