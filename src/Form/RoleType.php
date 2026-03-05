@@ -19,9 +19,10 @@ class RoleType extends AbstractType
             // Champ pour le nom du rôle
             ->add('nom', TextType::class, [
                 'label' => 'Nom du rôle',
+                'help' => 'Entrez le nom sans le préfixe ROLE_ (ex: USER, ADMIN, MANAGER). Le préfixe sera ajouté automatiquement.',
                 'attr' => [
                     'class' => 'form-control',
-                    'placeholder' => 'Entrez le nom du rôle',
+                    'placeholder' => 'Ex: USER, ADMIN, MANAGER',
                 ],
                 'constraints' => [
                     new NotBlank(

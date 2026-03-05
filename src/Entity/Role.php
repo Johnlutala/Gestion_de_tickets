@@ -49,6 +49,10 @@ class Role
 
     public function setNom(string $nom): static
     {
+        // Auto-prefix with ROLE_ if not already present
+        if (!str_starts_with($nom, 'ROLE_')) {
+            $nom = 'ROLE_' . $nom;
+        }
         $this->nom = $nom;
 
         return $this;
