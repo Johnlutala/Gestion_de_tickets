@@ -43,6 +43,18 @@
 
 		{% include 'Partials/menu.html.twig' %}
 
+		<!-- Messages Flash -->
+		<div class="container-fluid mt-3">
+			{% for label, messages in app.flashes %}
+				{% for message in messages %}
+					<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert">
+						<i class="bi bi-{{ label == 'error' ? 'exclamation-triangle' : (label == 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>
+						{{ message }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+					</div>
+				{% endfor %}
+			{% endfor %}
+		</div>
 
 		 {% block body %}{% endblock %}
 			
