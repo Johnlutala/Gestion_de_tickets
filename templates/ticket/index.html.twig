@@ -1,0 +1,140 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tickets index{% endblock %}
+
+{% block body %}
+<div class="container">
+
+    <div class="card mb-0">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-0 fw-bold">
+                        <i class="bi bi-ticket-perforated-fill text-primary me-2"></i>
+                        Tickets
+                    </h3>
+                    <p class="text-muted mb-0">Gestion des tickets</p>
+                </div>
+                <a href="{{ path('app_ticket_new') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>
+                    Ajouter
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive ">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Titre</th>
+                    <th>Description</th>
+                    <th>Marchand</th>
+                    <th>Note</th>
+                    <th>Noté</th>
+                    <th>Commentaire</th>
+                    <th>Actif</th>
+                    <th>Supprimé</th>
+                    <th>Année</th>
+                    <th>Mois</th>
+                    <th>Trimestre</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for ticket in tickets %}
+                <tr>
+
+                    <td>{{ ticket.id }}</td>
+
+                    <td>
+                        <div class="fw-semibold">{{ ticket.title }}</div>
+                    </td>
+
+                    <td>{{ ticket.description }}</td>
+
+                    <td>{{ ticket.marchand }}</td>
+
+                    <td>
+                        <span class="badge bg-info">
+                            {{ ticket.note }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {% if ticket.noted %}
+                            <span class="badge bg-success">Oui</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Non</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ ticket.comment }}</td>
+
+                    <td>
+                        {% if ticket.enabled %}
+                            <span class="badge bg-success">Oui</span>
+                        {% else %}
+                            <span class="badge bg-danger">Non</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if ticket.deleted %}
+                            <span class="badge bg-danger">Oui</span>
+                        {% else %}
+                            <span class="badge bg-success">Non</span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ ticket.year }}</td>
+                    <td>{{ ticket.month }}</td>
+                    <td>{{ ticket.quarter }}</td>
+
+                    <td class="text-end">
+
+                        <div class="dropdown">
+
+                            <button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+
+                            <div class="dropdown-menu">
+
+                                <a href="{{ path('app_ticket_show', {'id': ticket.id}) }}" class="dropdown-item">
+                                    <i class="ti ti-eye me-1"></i>
+                                    Voir
+                                </a>
+
+                                <a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="dropdown-item">
+                                    <i class="ti ti-pencil me-1"></i>
+                                    Modifier
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% else %}
+
+                <tr>
+                    <td colspan="13" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                        Aucun ticket trouvé
+                    </td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+{% endblock %}

@@ -42,7 +42,7 @@ class UserType extends AbstractType
                 'expanded' => false, // menu déroulant
                 'multiple' => false, // un seul rôle
                 'attr' => [
-                    'class' => 'form-select', // Bootstrap 5
+                    'class' => 'form-selects', // Bootstrap 5
                 ],
                 'constraints' => [
                     new NotBlank(

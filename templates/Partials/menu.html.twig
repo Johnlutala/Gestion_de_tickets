@@ -179,7 +179,7 @@
 					</li>
 				</ul>
 			</li>
-	
+
 			<li>
 				<a href="sign-in.html" class="mega-menu" title="Sign Out">
 					<i class="zmdi zmdi-power"></i>
@@ -205,22 +205,7 @@
 				</li>
 
 				<li>
-					<a href="javascript:void(0);" class="menu-toggle">
-						<i class="zmdi zmdi-apps"></i>
-						<span>Applications</span>
-					</a>
-					<ul class="ml-menu">
-						<li>
-							<a href="mail-inbox.html">FlexPay</a>
-						</li>
-						<li>
-							<a href="chat.html">FlexRoll</a>
-						</li>
-					</ul>
-				</li>
-
-				<li>
-					<a href="javascript:void(0);" class="menu-toggle">
+					<a href="{{ path('app_ticket_index') }}" class="menu">
 						<i class="zmdi zmdi-assignment"></i>
 						<span>Tickets</span>
 					</a>
@@ -230,6 +215,12 @@
 						</li>
 
 					</ul>
+				</li>
+                  <li>
+					<a href="{{ path('app_application_index') }}" class="menu">
+						<i class="zmdi zmdi-apps"></i>
+						<span>Applications</span>
+					</a>
 				</li>
 
 				<li>
@@ -241,12 +232,47 @@
 						<li>
 							<a href="{{ path('app_user_index') }}">Users</a>
 						</li>
+                        <li>
+							<a href="{{ path('app_role_index') }}">Roles</a>
+						</li>
+                        <li>
+							<a href="{{ path('app_privilege_index') }}">Privileges</a>
+						</li>
 
 					</ul>
 				</li>
+
 			</ul>
 		</div>
 	</aside>
+
+<!-- Main Content -->
+	<section class="content">
+		<div class="">
+			<div class="block-header">
+				<div class="row">
+					<div class="col-lg-7 col-md-6 col-sm-12">
+						<ul class="breadcrumb">
+							<li class="breadcrumb-item">
+								<a href="#">
+									<i class="zmdi zmdi-home"></i>
+									Dashboard</a>
+							</li>
+							<li class="breadcrumb-item active">Ticket Support</li>
+
+						</ul>
+
+					</div>
+					<div class="col-lg-5 col-md-6 col-sm-12 mt-3">
+						<button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button">
+							<i class="zmdi zmdi-arrow-right"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</section>
 
 	<!-- Right Sidebar -->
 	{# <aside id="rightsidebar" class="right-sidebar">
