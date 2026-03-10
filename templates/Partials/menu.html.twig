@@ -1,4 +1,5 @@
-<body class="theme-blush">
+<body
+	class="theme-blush">
 
 	<!-- Page Loader -->
 	<div class="page-loader-wrapper">
@@ -13,11 +14,6 @@
 	<!-- Right Icon menu Sidebar -->
 	<div class="navbar-right">
 		<ul class="navbar-nav">
-			<li>
-				<a href="#search" class="main_search" title="Search...">
-					<i class="zmdi zmdi-search"></i>
-				</a>
-			</li>
 			<li class="dropdown">
 				<a href="javascript:void(0);" class="dropdown-toggle" title="App" data-toggle="dropdown" role="button">
 					<i class="zmdi zmdi-apps"></i>
@@ -42,7 +38,7 @@
 									<p class="mb-0">FlexRoll</p>
 								</a>
 							</li>
-                            <li>
+							<li>
 								<a href="contact.html">
 									<div class="icon-circle mb-2 bg-purple">
 										<i class="zmdi zmdi-account-calendar"></i>
@@ -55,135 +51,56 @@
 				</ul>
 			</li>
 			<li class="dropdown">
-				<a href="javascript:void(0);" class="dropdown-toggle" title="Notifications" data-toggle="dropdown" role="button">
+				<a href="javascript:void(0);" id="notifDropdownToggle" class="dropdown-toggle" title="Notifications" data-toggle="dropdown" role="button">
 					<i class="zmdi zmdi-notifications"></i>
-					<div class="notify">
-						<span class="heartbit"></span>
-						<span class="point"></span>
-					</div>
+					{{ render(controller('App\\Controller\\TicketController::menuNotificationsBadge')) }}
 				</a>
 				<ul class="dropdown-menu slideUp2">
 					<li class="header">Notifications</li>
 					<li class="body">
-						<ul class="menu list-unstyled">
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-blue">
-										<i class="zmdi zmdi-account"></i>
-									</div>
-									<div class="menu-info">
-										<h4>8 New Members joined</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											14 mins ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-amber">
-										<i class="zmdi zmdi-shopping-cart"></i>
-									</div>
-									<div class="menu-info">
-										<h4>4 Sales made</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											22 mins ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-red">
-										<i class="zmdi zmdi-delete"></i>
-									</div>
-									<div class="menu-info">
-										<h4>
-											<b>Nancy Doe</b>
-											Deleted account</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											3 hours ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-green">
-										<i class="zmdi zmdi-edit"></i>
-									</div>
-									<div class="menu-info">
-										<h4>
-											<b>Nancy</b>
-											Changed name</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											2 hours ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-grey">
-										<i class="zmdi zmdi-comment-text"></i>
-									</div>
-									<div class="menu-info">
-										<h4>
-											<b>John</b>
-											Commented your post</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											4 hours ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-purple">
-										<i class="zmdi zmdi-refresh"></i>
-									</div>
-									<div class="menu-info">
-										<h4>
-											<b>John</b>
-											Updated status</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											3 hours ago
-										</p>
-									</div>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle bg-light-blue">
-										<i class="zmdi zmdi-settings"></i>
-									</div>
-									<div class="menu-info">
-										<h4>Settings Updated</h4>
-										<p>
-											<i class="zmdi zmdi-time"></i>
-											Yesterday
-										</p>
-									</div>
-								</a>
-							</li>
-						</ul>
+						{{ render(controller('App\\Controller\\TicketController::menuNotifications')) }}
 					</li>
 					<li class="footer">
-						<a href="javascript:void(0);">View All Notifications</a>
+						<a href="{{ path('app_ticket_chat') }}">Voir toutes les conversations</a>
 					</li>
 				</ul>
 			</li>
 
-			<li>
-				<a href="sign-in.html" class="mega-menu" title="Sign Out">
-					<i class="zmdi zmdi-power"></i>
-				</a>
+			<li class="dropdown">
+				{% if app.user %}
+					<a href="javascript:void(0);" class="dropdown-toggle" title="Mon compte" data-toggle="dropdown" role="button">
+						<i class="zmdi zmdi-account"></i>
+					</a>
+					<ul class="dropdown-menu slideUp2">
+						<li class="header">Mon compte</li>
+						<li class="body p-2">
+							<div class="d-flex align-items-center mb-2">
+								<div style="width:42px;height:42px;border-radius:50%;background:#128C7E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;margin-right:10px;flex-shrink:0;">
+									{{ (app.user.username|default(app.user.userIdentifier))|first|upper }}
+								</div>
+								<div>
+									<div><strong>{{ app.user.username|default(app.user.userIdentifier) }}</strong></div>
+									<div class="small text-muted">{{ app.user.nom|default('') }} {{ app.user.prenom|default('') }}</div>
+								</div>
+							</div>
+							<hr class="my-2">
+                            <div class="p-4">
+							<div class="small mb-1"><i class="zmdi zmdi-shield-security me-1"></i><strong>Rôle :</strong> {{ app.user.profile ? app.user.profile.nom : '—' }}</div>
+							 <div class="small mb-3"><i class="zmdi zmdi-apps me-1"></i><strong>Application :</strong> {{ app.user.application ? app.user.application.name|default('—') : '—' }}</div>
+							 </div>
+                            <div class="d-grid gap-1 p-5">
+								<a href="#" class="btn btn-sm btn-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+									<i class="zmdi zmdi-power me-1"></i> Déconnexion
+								</a>
+								<form id="logout-form" action="{{ path('app_logout') }}" method="post" style="display:none;"></form>
+							</div>
+						</li>
+					</ul>
+				{% else %}
+					<a href="{{ path('app_login') }}" class="mega-menu" title="Se connecter">
+						<i class="zmdi zmdi-power"></i>
+					</a>
+				{% endif %}
 			</li>
 		</ul>
 	</div>
@@ -216,7 +133,7 @@
 
 					</ul>
 				</li>
-                  <li>
+				<li>
 					<a href="{{ path('app_application_index') }}" class="menu">
 						<i class="zmdi zmdi-apps"></i>
 						<span>Applications</span>
@@ -232,10 +149,10 @@
 						<li>
 							<a href="{{ path('app_user_index') }}">Users</a>
 						</li>
-                        <li>
+						<li>
 							<a href="{{ path('app_role_index') }}">Roles</a>
 						</li>
-                        <li>
+						<li>
 							<a href="{{ path('app_privilege_index') }}">Privileges</a>
 						</li>
 
@@ -246,171 +163,92 @@
 		</div>
 	</aside>
 
-<!-- Main Content -->
+
+
+
+	<!-- Main Content -->
 	<section class="content">
 		<div class="">
 			<div class="block-header">
-				<div class="row">
-					<div class="col-lg-7 col-md-6 col-sm-12">
-						<ul class="breadcrumb">
-							<li class="breadcrumb-item">
-								<a href="#">
-									<i class="zmdi zmdi-home"></i>
-									Dashboard</a>
-							</li>
-							<li class="breadcrumb-item active">Ticket Support</li>
-
-						</ul>
-
-					</div>
-					<div class="col-lg-5 col-md-6 col-sm-12 mt-3">
-						<button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button">
-							<i class="zmdi zmdi-arrow-right"></i>
-						</button>
-					</div>
-				</div>
+				 <div class="row">
+                <div class="col-lg-7 col-md-6 col-sm-12">
+                    <h2>Dashboard</h2>
+                    <ul class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ path('app_home_index') }}">
+                        <i class="zmdi zmdi-home"></i>Menu</a></li>
+                        <li class="breadcrumb-item active">Gestion de Ticket</li>
+                    </ul>
+                    <button class="btn btn-primary btn-icon mobile_menu" type="button"><i class="zmdi zmdi-sort-amount-desc"></i></button>
+                </div>
+                <div class="col-lg-5 col-md-6 col-sm-12">
+                    <button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button"><i class="zmdi zmdi-arrow-right"></i></button>
+                </div>
+            </div>
 			</div>
 
 		</div>
+
+        {% for label, messages in app.flashes %}
+						{% for message in messages %}
+					<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert" id="auto-alert-{{ label }}">
+						<i class="bi bi-{{ label == 'error' ? 'exclamation-triangle' : (label == 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>
+						{{ message }}
+						<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+					</div>
+					<script>
+						setTimeout(function() {
+							var alert = document.getElementById('auto-alert-{{ label }}');
+							if (alert) {
+								alert.classList.remove('show');
+								alert.classList.add('fade');
+								setTimeout(function() { alert.remove(); }, 500);
+							}
+						}, 5000);
+					</script>
+						{% endfor %}
+					{% endfor %}
+
 	</section>
 
-	<!-- Right Sidebar -->
-	{# <aside id="rightsidebar" class="right-sidebar">
-		<ul class="nav nav-tabs sm">
-			<li class="nav-item">
-				<a class="nav-link active" data-toggle="tab" href="#setting">
-					<i class="zmdi zmdi-settings zmdi-hc-spin"></i>
-				</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" data-toggle="tab" href="#chat">
-					<i class="zmdi zmdi-comments"></i>
-				</a>
-			</li>
-		</ul>
-		{# <div class="tab-content">
-			<div class="tab-pane active" id="setting">
-				<div class="slim_scroll">
-					<div class="card">
-						<h6>Theme Option</h6>
-						<div class="light_dark">
-							<div class="radio">
-								<input type="radio" name="radio1" id="lighttheme" value="light" checked="">
-								<label for="lighttheme">Light Mode</label>
-							</div>
-							<div class="radio mb-0">
-								<input type="radio" name="radio1" id="darktheme" value="dark">
-								<label for="darktheme">Dark Mode</label>
-							</div>
-						</div>
-					</div>
 
-					<div class="card">
-						<h6>Color Skins</h6>
-						<ul class="choose-skin list-unstyled">
-							<li data-theme="purple">
-								<div class="purple"></div>
-							</li>
-							<li data-theme="blue">
-								<div class="blue"></div>
-							</li>
-							<li data-theme="cyan">
-								<div class="cyan"></div>
-							</li>
-							<li data-theme="green">
-								<div class="green"></div>
-							</li>
-							<li data-theme="orange">
-								<div class="orange"></div>
-							</li>
-							<li data-theme="blush" class="active">
-								<div class="blush"></div>
-							</li>
-						</ul>
-					</div>
+</body></html><script>
+// Quand la dropdown Notifications s'ouvre, prévenir le serveur que l'utilisateur consulte
+document.addEventListener('DOMContentLoaded', function () {
+var btn = document.getElementById('notifDropdownToggle');
+if (! btn)
+return;
 
-				</div>
-			</div>
-			<div class="tab-pane right_chat" id="chat">
-				<div class="slim_scroll">
-					<div class="card">
-						<ul class="list-unstyled">
-							<li class="online">
-								<a href="javascript:void(0);">
-									<div class="media">
-										<img class="media-object " src="assets/images/xs/avatar4.jpg" alt="">
-										<div class="media-body">
-											<span class="name">Sophia
-												<small class="float-right">11:00AM</small>
-											</span>
-											<span class="message">There are many variations of passages of Lorem Ipsum available</span>
-											<span class="badge badge-outline status"></span>
-										</div>
-									</div>
-								</a>
-							</li>
-							<li class="online">
-								<a href="javascript:void(0);">
-									<div class="media">
-										<img class="media-object " src="assets/images/xs/avatar5.jpg" alt="">
-										<div class="media-body">
-											<span class="name">Grayson
-												<small class="float-right">11:30AM</small>
-											</span>
-											<span class="message">All the Lorem Ipsum generators on the</span>
-											<span class="badge badge-outline status"></span>
-										</div>
-									</div>
-								</a>
-							</li>
-							<li class="offline">
-								<a href="javascript:void(0);">
-									<div class="media">
-										<img class="media-object " src="assets/images/xs/avatar2.jpg" alt="">
-										<div class="media-body">
-											<span class="name">Isabella
-												<small class="float-right">11:31AM</small>
-											</span>
-											<span class="message">Contrary to popular belief, Lorem Ipsum</span>
-											<span class="badge badge-outline status"></span>
-										</div>
-									</div>
-								</a>
-							</li>
-							<li class="me">
-								<a href="javascript:void(0);">
-									<div class="media">
-										<img class="media-object " src="assets/images/xs/avatar1.jpg" alt="">
-										<div class="media-body">
-											<span class="name">John
-												<small class="float-right">05:00PM</small>
-											</span>
-											<span class="message">It is a long established fact that a reader</span>
-											<span class="badge badge-outline status"></span>
-										</div>
-									</div>
-								</a>
-							</li>
-							<li class="online">
-								<a href="javascript:void(0);">
-									<div class="media">
-										<img class="media-object " src="assets/images/xs/avatar3.jpg" alt="">
-										<div class="media-body">
-											<span class="name">Alexander
-												<small class="float-right">06:08PM</small>
-											</span>
-											<span class="message">Richard McClintock, a Latin professor</span>
-											<span class="badge badge-outline status"></span>
-										</div>
-									</div>
-								</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div> #}
-	{# </aside>  #}
+// Bootstrap dropdown uses show.bs.dropdown; fallback to click
+btn.addEventListener('click', function () {
+try {
+fetch('{{ path('app_ticket_notifications_mark_seen') }}', {
+method: 'POST',
+headers: {
+'X-Requested-With': 'XMLHttpRequest'
+}
+});
+} catch (e) { // silent
+}
+});
+});</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	var profileBtn = document.getElementById('profileToggleBtn');
+	var profileDetails = document.getElementById('profile-details');
+	var profileLogout = document.getElementById('profileLogoutBtn');
 
-	</body>
-    </html>
+	if (profileBtn && profileDetails) {
+		profileBtn.addEventListener('click', function (e) {
+			e.preventDefault();
+			profileDetails.classList.toggle('d-none');
+		});
+	}
+
+	if (profileLogout && document.getElementById('logout-form')) {
+		profileLogout.addEventListener('click', function (e) {
+			e.preventDefault();
+			document.getElementById('logout-form').submit();
+		});
+	}
+});
+</script>

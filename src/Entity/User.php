@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Entity\Application;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,6 +14,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_USERNAME', fields: ['username'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    #[ORM\ManyToOne(targetEntity: Application::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Application $application = null;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -20,6 +25,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 180)]
     private ?string $username = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $nom = null;
+
+    #[ORM\Column(length: 120, nullable: true)]
+    private ?string $prenom = null;
+
+    /** Nom de l'application (si applicable pour le marchand) */
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $nameApplication = null;
 
     /**
      * @var list<string> The user roles
@@ -39,7 +54,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Ticket::class, orphanRemoval: true)]
     private $tickets;
 
-
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Role $profile = null;
@@ -56,6 +70,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->ticketsby = new ArrayCollection();
     }
 
+    public function getApplication(): ?Application
+    {
+        return $this->application;
+    }
+
+    public function setApplication(?Application $application): static
+    {
+        $this->application = $application;
+        return $this;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -64,6 +89,42 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getUsername(): ?string
     {
         return $this->username;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(?string $nom): static
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->prenom;
+    }
+
+    public function setPrenom(?string $prenom): static
+    {
+        $this->prenom = $prenom;
+
+        return $this;
+    }
+
+    public function getNameApplication(): ?string
+    {
+        return $this->nameApplication;
+    }
+
+    public function setNameApplication(?string $nameApplication): static
+    {
+        $this->nameApplication = $nameApplication;
+
+        return $this;
     }
 
     public function setUsername(string $username): static
@@ -119,27 +180,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-      /**
+    /**
      * @see UserInterface
      */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
-        $roles[] = 'ROLE_USER';
-
-    $privilege = $this->getProfile()?->getPrivileges()->toArray() ?? [];
-        foreach ($privilege as $p) {
-            foreach ($p->getRoles() as $r) {
-                $roles[] = 'ROLE_'.$r->getName();
-            }
+        if ($this->profile?->getNom()) {
+            $roles[] = $this->normalizeRoleName($this->profile->getNom());
         }
 
-        return array_unique($roles);
+        $roles[] = 'ROLE_USER';
 
+        return array_unique($roles);
     }
 
-/**
+    public function hasRole(string $role): bool
+    {
+        return in_array($this->normalizeRoleName($role), $this->getRoles(), true);
+    }
+
+    private function normalizeRoleName(string $role): string
+    {
+        $role = strtoupper(trim($role));
+        $role = str_replace([' ', '-'], '_', $role);
+
+        return str_starts_with($role, 'ROLE_') ? $role : 'ROLE_' . $role;
+    }
+
+    /**
      * @return Collection<int, Ticket>
      */
     public function getTickets(): Collection
@@ -172,7 +241,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }

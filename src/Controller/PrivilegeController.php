@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/privilege', name: 'app_privilege_')]
 final class PrivilegeController extends AbstractController
-{ 
+{
     #[Route(name: 'index', methods: ['GET'])]
     public function index(PrivilegeRepository $privilegeRepository): Response
     {
@@ -71,7 +71,7 @@ final class PrivilegeController extends AbstractController
     #[Route('/{id}', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Privilege $privilege, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$privilege->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $privilege->getId(), $request->request->get('_token'))) {
             $entityManager->remove($privilege);
             $entityManager->flush();
         }

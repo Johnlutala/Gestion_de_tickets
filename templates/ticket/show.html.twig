@@ -1,66 +1,136 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ticket{% endblock %}
+{% block title %}
+	-Détails Ticket
+{% endblock %}
 
 {% block body %}
-    <h1>Ticket</h1>
+	<div class="container py-4" style="margin-right: 20px;">
+		<div class="table-responsive">
+			<div class="card shadow-sm border-0">
+				<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+					<h5 class="mb-0">
+						<i class="bi bi-chat-dots me-2"></i>
+						Ticket #{{ ticket.id }}
+						-
+						{{ ticket.title }}
+					</h5>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ ticket.id }}</td>
-            </tr>
-            <tr>
-                <th>Title</th>
-                <td>{{ ticket.title }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ ticket.description }}</td>
-            </tr>
-            <tr>
-                <th>Marchand</th>
-                <td>{{ ticket.marchand }}</td>
-            </tr>
-            <tr>
-                <th>Note</th>
-                <td>{{ ticket.note }}</td>
-            </tr>
-            <tr>
-                <th>Noted</th>
-                <td>{{ ticket.noted ? 'Yes' : 'No' }}</td>
-            </tr>
-            <tr>
-                <th>Comment</th>
-                <td>{{ ticket.comment }}</td>
-            </tr>
-            <tr>
-                <th>Enabled</th>
-                <td>{{ ticket.enabled ? 'Yes' : 'No' }}</td>
-            </tr>
-            <tr>
-                <th>Deleted</th>
-                <td>{{ ticket.deleted ? 'Yes' : 'No' }}</td>
-            </tr>
-            <tr>
-                <th>Year</th>
-                <td>{{ ticket.year }}</td>
-            </tr>
-            <tr>
-                <th>Month</th>
-                <td>{{ ticket.month }}</td>
-            </tr>
-            <tr>
-                <th>Quarter</th>
-                <td>{{ ticket.quarter }}</td>
-            </tr>
-        </tbody>
-    </table>
+					<a href="{{ path('app_ticket_index') }}" class="btn btn-light btn-sm">
+						<i class="bi bi-arrow-left me-1"></i>Retour
+					</a>
+				</div>
 
-    <a href="{{ path('app_ticket_index') }}">back to list</a>
+				<div class="card-body">
+					<table class="table table-bordered align-middle">
+						<tbody>
+							<tr>
+								<th class="bg-light" style="width:30%">
+									<i class="bi bi-hash text-primary me-2"></i>ID
+								</th>
+								<td>{{ ticket.id }}</td>
+							</tr>
 
-    <a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}">edit</a>
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-card-text text-primary me-2"></i>Titre
+								</th>
+								<td class="fw-semibold">{{ ticket.title }}</td>
+							</tr>
 
-    {{ include('ticket/_delete_form.html.twig') }}
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-file-text text-primary me-2"></i>Description
+								</th>
+								<td>{{ ticket.description }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-person-badge text-primary me-2"></i>Marchand
+								</th>
+								<td>{{ ticket.marchand }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-star text-primary me-2"></i>Note
+								</th>
+								<td>
+									<span class="badge bg-info">{{ ticket.note }}</span>
+								</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-check-circle text-primary me-2"></i>Noté
+								</th>
+								<td>
+									{% if ticket.noted %}
+										<span class="badge bg-success">Oui</span>
+									{% else %}
+										<span class="badge bg-secondary">Non</span>
+									{% endif %}
+								</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-chat-left-text text-primary me-2"></i>Commentaire
+								</th>
+								<td>{{ ticket.comment|default('—') }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-toggle-on text-primary me-2"></i>Activé
+								</th>
+								<td>
+									{% if ticket.enabled %}
+										<span class="badge bg-success">Oui</span>
+									{% else %}
+										<span class="badge bg-danger">Non</span>
+									{% endif %}
+								</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-trash text-primary me-2"></i>Supprimé
+								</th>
+								<td>
+									{% if ticket.deleted %}
+										<span class="badge bg-danger">Oui</span>
+									{% else %}
+										<span class="badge bg-success">Non</span>
+									{% endif %}
+								</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-calendar text-primary me-2"></i>Année / Mois / Trimestre
+								</th>
+								<td>
+									{{ ticket.year }}
+									/
+									{{ ticket.month }}
+									/
+									{{ ticket.quarter }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+
+					<div class="d-flex justify-content-between mt-3">
+						<div>
+							<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="btn btn-primary btn-sm me-2">
+								<i class="bi bi-pencil me-1"></i>Modifier
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}

@@ -11,7 +11,6 @@
 			<div class="card-body">
 
 				<div class="d-flex justify-content-between align-items-center mb-3">
-
 					<div>
 						<h4 class="fw-bold mb-0">
 							<i class="bi bi-pencil text-warning me-2"></i>
@@ -21,58 +20,19 @@
 					</div>
 
 					<div class="btn-group">
-						<a href="{{ path('app_application_show', {'id': application.id}) }}" class="btn btn-outline-info btn-sm">
-							<i class="bi bi-eye me-1"></i>Voir
-						</a>
 						<a href="{{ path('app_application_index') }}" class="btn btn-outline-secondary btn-sm">
-							<i class="bi bi-arrow-left me-1"></i>Retour à la liste
+							<i class="bi bi-arrow-left me-1"></i>Retour
 						</a>
 					</div>
 
 				</div>
 
-				<div class="alert alert-warning">
-					<i class="bi bi-exclamation-triangle me-2"></i>
-					<strong>Attention :</strong> La modification des clés d'API peut affecter les intégrations existantes.
-				</div>
 
 				{{ include('application/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
 
-				<hr class="my-4">
-
-				<div class="d-flex justify-content-between align-items-center">
-					<small class="text-muted">
-						<i class="bi bi-info-circle me-1"></i>Application #{{ application.id }}
-					</small>
-					<button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
-						<i class="bi bi-trash me-2"></i>Supprimer cette application
-					</button>
-				</div>
-
 			</div>
 		</div>
 	</div>
 
-	<!-- Modal de confirmation de suppression -->
-	<div class="modal fade" id="deleteModal" tabindex="-1">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title">
-						<i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirmer la suppression
-					</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-				</div>
-				<div class="modal-body">
-					<p>Êtes-vous sûr de vouloir supprimer l'application <strong>"{{ application.name }}"</strong> ?</p>
-					<p class="text-danger mb-0"><small>Cette action est irréversible et supprimera également toutes les clés d'API associées.</small></p>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-					{{ include('application/_delete_form.html.twig') }}
-				</div>
-			</div>
-		</div>
-	</div>
 
 {% endblock %}

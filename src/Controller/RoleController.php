@@ -71,7 +71,7 @@ final class RoleController extends AbstractController
     #[Route('/{id}', name: 'app_role_delete', methods: ['POST'])]
     public function delete(Request $request, Role $role, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$role->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $role->getId(), $request->request->get('_token'))) {
             $entityManager->remove($role);
             $entityManager->flush();
         }

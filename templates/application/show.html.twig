@@ -4,14 +4,12 @@
 
 {% block body %}
 
-	<div class="container">
+	<div class="container" style="margin-right: 20px;">
 
 		<div class="card mb-4">
 
 			<div class="card-body">
-
 				<div class="d-flex justify-content-between align-items-center mb-3">
-
 					<div>
 						<h4 class="fw-bold mb-0">
 							<i class="bi bi-app text-primary me-2"></i>
@@ -22,26 +20,14 @@
 
 					<div class="btn-group">
 						<a href="{{ path('app_application_index') }}" class="btn btn-outline-secondary btn-sm">
-							<i class="bi bi-arrow-left me-1"></i>Retour
-						</a>
-						<a href="{{ path('app_application_edit', {'id': application.id}) }}" class="btn btn-primary btn-sm">
-							<i class="bi bi-pencil me-1"></i>Modifier
+							<i class="bi bi-arrow-left mx-0"></i>Retour
 						</a>
 					</div>
 
 				</div>
 
 				<div class="row">
-					<div class="col-md-6">
-						<div class="mb-3">
-							<label class="form-label fw-bold">ID</label>
-							<div class="input-group">
-								<span class="input-group-text"><i class="bi bi-hash"></i></span>
-								<input type="text" class="form-control" value="#{{ application.id }}" readonly>
-							</div>
-						</div>
-					</div>
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="mb-3">
 							<label class="form-label fw-bold">Nom</label>
 							<div class="input-group">
@@ -50,29 +36,17 @@
 							</div>
 						</div>
 					</div>
-				</div>
 
-				<hr>
-
-				<h5 class="fw-bold mb-3">
-					<i class="bi bi-key text-warning me-2"></i>
-					Clés d'API
-				</h5>
-
-				<div class="row">
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="mb-3">
 							<label class="form-label fw-bold">Clé d'API</label>
 							<div class="input-group">
 								<span class="input-group-text"><i class="bi bi-key"></i></span>
 								<input type="text" class="form-control font-monospace small" id="keyId" value="{{ application.keyId }}" readonly>
-								<button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ application.keyId }}')" title="Copier">
-									<i class="bi bi-clipboard"></i>
-								</button>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-6">
+					<div class="col-md-4">
 						<div class="mb-3">
 							<label class="form-label fw-bold">Clé Secrète</label>
 							<div class="input-group">
@@ -87,20 +61,6 @@
 							</div>
 						</div>
 					</div>
-				</div>
-
-				<div class="alert alert-warning">
-					<i class="bi bi-exclamation-triangle me-2"></i>
-					<strong>Attention :</strong> Gardez ces clés en sécurité et ne les partagez jamais publiquement.
-				</div>
-
-				<div class="d-flex justify-content-end mt-4">
-					<form method="post" action="{{ path('app_application_delete', {'id': application.id}) }}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette application ?');">
-						<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
-						<button class="btn btn-danger">
-							<i class="bi bi-trash me-2"></i>Supprimer cette application
-						</button>
-					</form>
 				</div>
 
 			</div>

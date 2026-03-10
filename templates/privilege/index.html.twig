@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des privilèges{% endblock %}
+{% block title %}Liste des privilèges
+{% endblock %}
 
 {% block body %}
 
@@ -9,7 +10,6 @@
 		<div class="card mb-4">
 
 			<div class="card-body">
-
 				<div class="d-flex justify-content-between align-items-center mb-3">
 
 					<div>
@@ -22,7 +22,7 @@
 
 					<a href="{{ path('app_privilege_new') }}" class="btn btn-primary btn-sm">
 						<i class="bi bi-plus-circle me-1"></i>
-						Nouveau privilège
+						Nouveau
 					</a>
 
 				</div>
@@ -45,16 +45,19 @@
 									<td>{{ loop.index }}</td>
 									<td>
 										<div class="fw-semibold">
-											<span class="badge bg-success">{{ privilege.name }}</span>
+											<span class="badge bg-success text-white" style="font-size: 0.8rem; padding: 0.4rem 0.6rem;">
+												<i class="bi bi-check-circle me-1"></i>
+												{{ privilege.name }}
+											</span>
 										</div>
 									</td>
 									<td>
-										<small class="text-muted">{{ privilege.description }}</small>
+										<span class="text-muted fs-5">{{ privilege.description }}</span>
 									</td>
 									<td>
 										<div class="d-flex justify-content-end">
 											<div class="dropdown">
-												<button type="button" class="btn p-0 dropdown-toggle" data-toggle="dropdown">
+												<button type="button" class="btn p-0 dropdown-toggle" data-bs-toggle="dropdown">
 													<i class="bx bx-dots-vertical-rounded"></i>
 												</button>
 												<div class="dropdown-menu">
@@ -64,12 +67,12 @@
 													<a href="{{ path('app_privilege_edit', {'id': privilege.id}) }}" class="dropdown-item">
 														<i class="ti ti-pencil me-1"></i>Modifier
 													</a>
-													<form method="post" action="{{ path('app_privilege_delete', {'id': privilege.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer ce privilège ?');">
+													<form id="delete-privilege-{{ privilege.id }}" method="post" action="{{ path('app_privilege_delete', {'id': privilege.id}) }}" class="d-none">
 														<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ privilege.id) }}">
-														<button type="submit" class="dropdown-item text-danger">
-															<i class="ti ti-trash me-1"></i>Supprimer
-														</button>
 													</form>
+													<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer ce privilège ?')) { document.getElementById('delete-privilege-{{ privilege.id }}').submit(); }">
+														<i class="ti ti-trash me-1"></i>Supprimer
+													</a>
 												</div>
 											</div>
 										</div>

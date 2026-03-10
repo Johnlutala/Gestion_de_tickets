@@ -5,8 +5,7 @@
 
 {% block body %}
 
-	<div class="container">
-
+	<div class="container" style="margin-right: 20px;">
 		<div class="card mb-4">
 
 			<div class="card-body">
@@ -34,109 +33,109 @@
 						<thead class="table-light">
 							<tr>
 								<th>#</th>
+								<th>Noms</th>
 								<th>Nom d'utilisateur</th>
-								<th>Profil (Rôle)</th>
+								<th>Application</th>
+								<th>Profile</th>
 								<th>Privilèges</th>
 								<th class="text-end">Actions</th>
 							</tr>
 						</thead>
 
-							{% for user in users %}
+						{% for user in users %}
 
-								<tr>
+							<tr>
 
-									<td>{{ loop.index }}</td>
-
-									<td>
-										<div class="fw-semibold">
-											{{ user.username }}
-										</div>
-									</td>
-
-									<td>
-
-										{% if user.profile %}
-											<span class="badge bg-primary text-white" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;">
-												<i class="bi bi-shield-lock me-1"></i>
-												{{ user.profile.nom }}
-											</span>
+								<td>{{ loop.index }}</td>
+								<td>{{ user.prenom|default('') }}
+									{{ user.nom|default('') }}</td>
+								<td>
+									<div class="fw-semibold">
+										{{ user.username }}
+									</div>
+								</td>
+								<td>{{ user.application ? user.application.name|default('no defined') : 'no defined' }}</td>
+								<td>
+									{% if user.profile %}
+										<span class="badge bg-primary text-white" style="font-size: 0.7rem; padding: 0.5rem 0.75rem;">
+											<i class="bi bi-shield-lock me-1"></i>
+											{{ user.profile.nom }}
+										</span>
+									{% else %}
+										<span class="text-muted small">
+											<i class="bi bi-dash-circle me-1"></i>
+											Aucun profil</span>
+									{% endif %}
+								</td>
+								<td>
+									{% if user.profile %}
+										{% set privileges = user.profile.privileges %}
+										{% if privileges|length > 0 %}
+											<div class="d-flex flex-wrap gap-1">
+												{% for privilege in privileges %}
+													<span class="badge bg-success text-white" style="font-size: 0.6rem; padding: 0.4rem 0.6rem;">
+														<i class="bi bi-check-circle me-1"></i>
+														{{ privilege.name }}
+													</span>
+												{% endfor %}
+											</div>
 										{% else %}
-											<span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Aucun profil</span>
+											<span class="text-muted small">
+												<i class="bi bi-dash-circle me-1"></i>Aucun privilège</span>
 										{% endif %}
-									</td>
-									<td>
-										{% if user.profile %}
-											{% set privileges = user.profile.privileges %}
-											{% if privileges|length > 0 %}
-												<div class="d-flex flex-wrap gap-1">
-													{% for privilege in privileges %}
-														<span class="badge bg-success text-white" style="font-size: 0.8rem; padding: 0.4rem 0.6rem;">
-															<i class="bi bi-check-circle me-1"></i>{{ privilege.name }}
-														</span>
-													{% endfor %}
-												</div>
-											{% else %}
-												<span class="text-muted small"><i class="bi bi-dash-circle me-1"></i>Aucun privilège</span>
-											{% endif %}
-										{% else %}
-											<span class="text-muted small">—</span>
-										{% endif %}
-									</td>
-									<td>
-										<div class="d-flex justify-content-end">
-											<div class="dropdown">
-												<button type="button" class="btn p-0 dropdown-toggle" data-bs-toggle="dropdown">
-													<i class="bx bx-dots-vertical-rounded"></i>
-												</button>
+									{% else %}
+										<span class="text-muted small">—</span>
+									{% endif %}
+								</td>
+								<td>
+									<div class="d-flex justify-content-end">
+										<div class="dropdown">
+											<button type="button" class="btn p-0 dropdown-toggle" data-bs-toggle="dropdown">
+												<i class="bx bx-dots-vertical-rounded"></i>
+											</button>
 
-												<div class="dropdown-menu">
-													<a href="{{ path('app_user_show', {'id': user.id}) }}" class="dropdown-item">
+											<div class="dropdown-menu">
+												<a href="{{ path('app_user_show', {'id': user.id}) }}" class="dropdown-item">
 
-														<i class="ti ti-eye me-1"></i>
-														Voir
+													<i class="ti ti-eye me-1"></i>
+													Voir
 
-													</a>
+												</a>
 
-													<a href="{{ path('app_user_edit', {'id': user.id}) }}" class="dropdown-item">
+												<a href="{{ path('app_user_edit', {'id': user.id}) }}" class="dropdown-item">
 
-														<i class="ti ti-pencil me-1"></i>
-														Modifier
+													<i class="ti ti-pencil me-1"></i>
+													Modifier
 
-													</a>
-													<form method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" onsubmit="return confirm('Voulez-vous vraiment supprimer cet utilisateur ?');">
-
-														<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
-
-														<button type="submit" class="dropdown-item text-danger">
-
-															<i class="ti ti-trash me-1"></i>
-															Supprimer
-														</button>
-													</form>
-												</div>
+												</a>
+												<form id="delete-user-{{ user.id }}" method="post" action="{{ path('app_user_delete', {'id': user.id}) }}" class="d-none">
+													<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+												</form>
+												<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer cet utilisateur ?')) { document.getElementById('delete-user-{{ user.id }}').submit(); }">
+													<i class="ti ti-trash me-1"></i>Supprimer
+												</a>
 											</div>
 										</div>
-									</td>
-								</tr>
+									</div>
+								</td>
+							</tr>
 
-							{% else %}
+						{% else %}
 
-								<tr>
-									<td colspan="4" class="text-center text-muted py-4">
-										<i class="bi bi-people fs-3 d-block mb-2"></i>
-										Aucun utilisateur trouvé.
+							<tr>
+								<td colspan="4" class="text-center text-muted py-4">
+									<i class="bi bi-people fs-3 d-block mb-2"></i>
+									Aucun utilisateur trouvé.
 
-									</td>
+								</td>
 
-								</tr>
+							</tr>
 
-							{% endfor %}
+						{% endfor %}
 
-						</tbody>
+					</tbody>
 
-					</table>
-
-				</div>
+				</table>
 
 			</div>
 
@@ -144,4 +143,4 @@
 
 	</div>
 
-{% endblock %}
+</div>{% endblock %}

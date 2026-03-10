@@ -22,21 +22,23 @@ class UserAuthentificatorAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_login';
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
-    {
-    }
+    public function __construct(private UrlGeneratorInterface $urlGenerator) {}
 
     public function authenticate(Request $request): Passport
     {
-        $username = $request->getPayload()->getString('username');
+        // Récupère les champs postés depuis le formulaire standard
+        // support both Symfony default field names (_username/_password) and custom (username/password)
+        $username = (string) ($request->request->get('username') ?? $request->request->get('_username', ''));
+        $password = (string) ($request->request->get('password') ?? $request->request->get('_password', ''));
+        $csrf = (string) ($request->request->get('_csrf_token') ?? $request->request->get('_csrf_token', ''));
 
         $request->getSession()->set(SecurityRequestAttributes::LAST_USERNAME, $username);
 
         return new Passport(
             new UserBadge($username),
-            new PasswordCredentials($request->getPayload()->getString('password')),
+            new PasswordCredentials($password),
             [
-                new CsrfTokenBadge('authenticate', $request->getPayload()->getString('_csrf_token')),
+                new CsrfTokenBadge('authenticate', $csrf),
                 new RememberMeBadge(),
             ]
         );
@@ -48,9 +50,8 @@ class UserAuthentificatorAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
-        // For example:
-        // return new RedirectResponse($this->urlGenerator->generate('some_route'));
-        throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
+        // rediriger vers le dashboard par défaut
+        return new RedirectResponse($this->urlGenerator->generate('app_home_index'));
     }
 
     protected function getLoginUrl(Request $request): string

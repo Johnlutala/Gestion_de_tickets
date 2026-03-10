@@ -1,59 +1,89 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} -Détails {% endblock %}
+{% block title %}
+	-Détails
+{% endblock %}
 
 {% block body %}
-<div class="container py-4">
- <div class="table-responsive">
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-person-circle me-2"></i>
-                {{ user.username }}
-            </h5>
+	<div class="container py-4"  style="margin-right: 20px;">
+		<div class="table-responsive">
+			<div class="card shadow-sm border-0">
+				<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+					<h5 class="mb-0">
+						<i class="bi bi-person-circle me-2"></i>
+						{{ user.username }}
+					</h5>
 
-            <a href="{{ path('app_user_index') }}" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Retour
-            </a>
-        </div>
+					<a href="{{ path('app_user_index') }}" class="btn btn-light btn-sm">
+						<i class="bi bi-arrow-left me-1"></i>Retour
+					</a>
+				</div>
 
-        <div class="card-body">
-            <table class="table table-bordered align-middle">
-                <tbody>
-                    <tr>
-                        <th class="bg-light" style="width:30%">
-                            <i class="bi bi-hash text-primary me-2"></i>ID
-                        </th>
-                        <td>{{ user.id }}</td>
-                    </tr>
+				<div class="card-body">
+					<table class="table table-bordered align-middle">
+						<tbody>
+							<tr>
+								<th class="bg-light" style="width:30%">
+									<i class="bi bi-hash text-primary me-2"></i>ID
+								</th>
+								<td>{{ user.id }}</td>
+							</tr>
 
-                    <tr>
-                        <th class="bg-light">
-                            <i class="bi bi-person text-primary me-2"></i>Nom d'utilisateur
-                        </th>
-                        <td class="fw-semibold">{{ user.username }}</td>
-                    </tr>
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-person text-primary me-2"></i>Nom d'utilisateur
+								</th>
+								<td class="fw-semibold">{{ user.username }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-card-text text-primary me-2"></i>Nom
+								</th>
+								<td>{{ user.nom|default('—') }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-person-badge text-primary me-2"></i>Prénom
+								</th>
+								<td>{{ user.prenom|default('—') }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-briefcase text-primary me-2"></i>Type
+								</th>
+								<td>{{ user.type|default('—') }}</td>
+							</tr>
+
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-box-seam text-primary me-2"></i>Application
+								</th>
+								<td>{{ user.nameApplication|default('—') }}</td>
+							</tr>
 
 
-                    <tr>
-                        <th class="bg-light">
-                            <i class="bi bi-shield-check text-primary me-0"></i>Rôle
-                        </th>
-                        <td>
-                            {% if user.profile %}
-                                <span class="badge bg-primary">
-                                    <i class="bi bi-shield-lock me-0"></i>{{ user.profile.nom }}
-                                </span>
-                            {% else %}
-                                <span class="text-muted">Aucun profil attribué</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
+							<tr>
+								<th class="bg-light">
+									<i class="bi bi-shield-check text-primary me-0"></i>Rôle
+								</th>
+								<td>
+									{% if user.profile %}
+										<span class="badge bg-primary">
+											<i class="bi bi-shield-lock me-0"></i>
+											{{ user.profile.nom }}
+										</span>
+									{% else %}
+										<span class="text-muted">Aucun profil attribué</span>
+									{% endif %}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>{% endblock %}

@@ -1,0 +1,695 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} - Support Tickets
+{% endblock %}
+
+{% block body %}
+	<style>
+		/* ── Chat container ─────────────────────── */
+		.chat-wrapper {
+			display: flex;
+			height: calc(100vh - 150px);
+			min-height: 400px;
+			border-radius: 12px;
+			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+			background: #f0f2f5;
+			overflow: hidden;
+			margin-left: 120px;
+		}
+
+		/* ── Panel gauche : liste conversations ─── */
+		.chat-sidebar {
+			width: 340px;
+			min-width: 280px;
+			max-width: 340px;
+			background: #fff;
+			border-right: 1px solid #e9ecef;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+		}
+		.chat-sidebar-header {
+			padding: 18px 16px 10px;
+			background: #128C7E;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.chat-sidebar-header h5 {
+			margin: 0;
+			font-weight: 700;
+			font-size: 1.05rem;
+		}
+		.chat-sidebar-search {
+			padding: 8px 12px;
+			background: #f6f7fb;
+			border-bottom: 1px solid #e9ecef;
+		}
+		.chat-sidebar-search input {
+			border-radius: 20px;
+			padding: 6px 14px;
+			font-size: 0.9rem;
+			border: 1px solid #dee2e6;
+			background: #fff;
+		}
+		.chat-list {
+			overflow-y: auto;
+			flex: 1;
+			min-height: 0;
+		}
+		.chat-list-item {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 12px 16px;
+			cursor: pointer;
+			border-bottom: 1px solid #f1f3f5;
+			text-decoration: none;
+			color: inherit;
+			transition: background 0.15s;
+		}
+		.chat-list-item:hover,
+		.chat-list-item.active {
+			background: #f0f2f5;
+		}
+		.chat-list-item.active {
+			border-left: 4px solid #128C7E;
+		}
+		.chat-avatar {
+			width: 46px;
+			height: 46px;
+			border-radius: 50%;
+			background: #128C7E;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-weight: 700;
+			font-size: 1.1rem;
+			flex-shrink: 0;
+		}
+		.chat-avatar.admin {
+			background: #075E54;
+		}
+		.chat-item-info {
+			flex: 1;
+			min-width: 0;
+		}
+		.chat-item-title {
+			font-weight: 600;
+			font-size: 0.92rem;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.chat-item-preview {
+			font-size: 0.8rem;
+			color: #6c757d;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.chat-item-meta {
+			font-size: 0.73rem;
+			color: #adb5bd;
+			text-align: right;
+			white-space: nowrap;
+		}
+		.badge-count {
+			background: #25D366;
+			color: #fff;
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			font-size: 0.72rem;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		/* ── Panel droit : conversation ─────────── */
+		.chat-main {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			background: #e5ddd5;
+			background-image: url("data:image/svg+xml, %3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c4c4c4' fill-opacity='0.08'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+			position: relative;
+		}
+		.chat-topbar {
+			background: #128C7E;
+			padding: 10px 18px;
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			color: #fff;
+			box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+			flex-shrink: 0;
+		}
+		.chat-topbar .info h6 {
+			margin: 0;
+			font-weight: 700;
+			font-size: 0.98rem;
+		}
+		.chat-topbar .info small {
+			opacity: .8;
+			font-size: 0.78rem;
+		}
+		.chat-empty {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			color: #6c757d;
+		}
+		.chat-messages {
+			flex: 1;
+			min-height: 0;
+			overflow-y: auto;
+			padding: 16px 20px;
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+		}
+		.msg-bubble-wrap {
+			display: flex;
+			flex-direction: column;
+			max-width: 65%;
+		}
+		.msg-bubble-wrap.me {
+			align-self: flex-end;
+			align-items: flex-end;
+		}
+		.msg-bubble-wrap.them {
+			align-self: flex-start;
+			align-items: flex-start;
+		}
+		.msg-sender-name {
+			font-size: 0.72rem;
+			color: #128C7E;
+			font-weight: 600;
+			margin-bottom: 2px;
+			padding: 0 4px;
+		}
+		.msg-bubble {
+			padding: 8px 14px;
+			border-radius: 10px;
+			font-size: 0.9rem;
+			line-height: 1.45;
+			position: relative;
+			word-break: break-word;
+			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+		}
+		.msg-bubble-wrap.me .msg-bubble {
+			background: #dcf8c6;
+			border-bottom-right-radius: 2px;
+		}
+		.msg-bubble-wrap.them .msg-bubble {
+			background: #fff;
+			border-bottom-left-radius: 2px;
+		}
+		.msg-attachment {
+			margin-top: 8px;
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+		.msg-attachment-image {
+			max-width: 240px;
+			max-height: 240px;
+			border-radius: 10px;
+			object-fit: cover;
+			border: 1px solid rgba(0, 0, 0, 0.08);
+		}
+		.msg-attachment-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 8px 10px;
+			border-radius: 10px;
+			background: rgba(18, 140, 126, 0.08);
+			color: #075E54;
+			text-decoration: none;
+			font-size: 0.85rem;
+			font-weight: 600;
+		}
+		.msg-attachment-link:hover {
+			background: rgba(18, 140, 126, 0.14);
+			color: #075E54;
+		}
+		.msg-time {
+			font-size: 0.68rem;
+			color: #adb5bd;
+			margin-top: 2px;
+			padding: 0 4px;
+		}
+		.msg-bubble-wrap.me .msg-time {
+			text-align: right;
+		}
+
+		/* ── Zone de saisie ─────────────────────── */
+		.chat-input-area {
+			background: #f0f2f5;
+			padding: 10px 16px;
+			display: flex;
+			align-items: flex-end;
+			gap: 10px;
+			border-top: 1px solid #e0e0e0;
+			flex-shrink: 0;
+		}
+		.chat-input-area textarea {
+			flex: 1;
+			border-radius: 22px;
+			border: 1px solid #dee2e6;
+			padding: 10px 16px;
+			font-size: 0.9rem;
+			resize: none;
+			max-height: 120px;
+			line-height: 1.4;
+			background: #fff;
+		}
+		.chat-input-area textarea:focus {
+			outline: none;
+			border-color: #128C7E;
+			box-shadow: 0 0 0 2px rgba(18, 140, 126, 0.15);
+		}
+		.btn-send {
+			background: #128C7E;
+			color: #fff;
+			border: none;
+			width: 44px;
+			height: 44px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1.1rem;
+			transition: background 0.15s;
+			flex-shrink: 0;
+			cursor: pointer;
+		}
+		.btn-send:hover {
+			background: #075E54;
+		}
+		.btn-attach {
+			background: #fff;
+			color: #128C7E;
+			border: 1px solid #dfe3e8;
+			width: 44px;
+			height: 44px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 1rem;
+			cursor: pointer;
+			flex-shrink: 0;
+		}
+		.btn-attach:hover {
+			background: #edf7f6;
+		}
+		.chat-file-meta {
+			align-self: center;
+			font-size: 0.76rem;
+			color: #5f6b72;
+			max-width: 180px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		/* ── Modal nouveau ticket ───────────────── */
+		.modal-header {
+			background: #128C7E;
+			color: #fff;
+		}
+		.modal-header .btn-close {
+			filter: invert(1);
+		}
+
+		/* ── Responsive ─────────────────────────── */
+		.btn-back-mobile {
+			display: none;
+		}
+		@media(max-width: 768px) {
+			.chat-wrapper {
+				height: calc(100vh - 80px);
+				margin-left: 0 !important;
+				border-radius: 0;
+			}
+			.chat-sidebar {
+				width: 100%;
+				max-width: 100%;
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				z-index: 10;
+			}
+			.chat-sidebar.mobile-hidden {
+				display: none;
+			}
+			.chat-main.mobile-hidden {
+				display: none;
+			}
+			.btn-back-mobile {
+				display: flex !important;
+				align-items: center;
+				justify-content: center;
+				background: transparent;
+				border: none;
+				color: #ffffff;
+				font-size: 1.3rem;
+				padding: 0 8px 0 0;
+				cursor: pointer;
+			}
+		}
+	</style>
+
+	<div class="container py-5 mb-3">
+		<div
+			class="chat-wrapper" id="chatWrapper" style="position:relative;">
+			{# ══════════════════════════════════════
+													PANEL GAUCHE — Liste des conversations
+												  ══════════════════════════════════════ #}
+			<div class="chat-sidebar" id="chatSidebar">
+				<div class="chat-sidebar-header">
+					<h5>
+						<i class="bi bi-chat-dots-fill me-2"></i>Tickets</h5>
+					<button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalNewTicket" title="Nouveau ticket">
+						<i class="bi bi-plus-lg" style="color: #0d0070;"></i>
+					</button>
+				</div>
+				<div class="chat-sidebar-search">
+					<input type="text" id="searchConv" class="form-control form-control-sm w-100" placeholder="Rechercher un ticket…" oninput="filterConversations(this.value)">
+				</div>
+
+				<div class="chat-list" id="chatList">
+					{% if conversations is empty %}
+						<div class="p-4 text-center text-muted small">
+							<i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>
+							Aucun ticket. Créez-en un !
+						</div>
+					{% else %}
+						{% for conv in conversations %}
+							{% set initiale = conv.marchand|first|upper %}
+							{% set isActive = selected is not null and selected.id == conv.id %}
+							<a href="{{ path('app_ticket_chat_show', {id: conv.id}) }}" class="chat-list-item {{ isActive ? 'active' : '' }}" data-title="{{ conv.title|lower }}" data-marchand="{{ conv.marchand|lower }}">
+								<div class="chat-avatar">{{ initiale }}</div>
+								<div class="chat-item-info">
+									<div class="chat-item-title">{{ conv.title }}</div>
+									<div class="chat-item-preview">
+										<span class="text-muted">{{ conv.marchand }}</span>
+										—
+										{{ conv.description|slice(0,40) }}
+										{% if conv.description|length > 40 %}…
+										{% endif %}
+									</div>
+								</div>
+								<div class="chat-item-meta d-flex flex-column align-items-end gap-1">
+									{% if conv.createdAt %}
+										<span>{{ conv.createdAt|date('d/m') }}</span>
+									{% endif %}
+									{% if conv.replies|length > 0 %}
+										<span class="badge-count">{{ conv.replies|length }}</span>
+									{% endif %}
+								</div>
+							</a>
+						{% endfor %}
+					{% endif %}
+				</div>
+			</div>
+
+			{# ══════════════════════════════════════
+																													       PANEL DROIT — Conversation
+																													       ══════════════════════════════════════ #}
+			<div class="chat-main" id="chatMain">
+				{% if selected is null %}
+					<div class="chat-empty">
+						<i class="bi bi-chat-square-dots-fill" style="font-size:3rem;color:#128C7E;opacity:.4;"></i>
+						<p class="mt-3 fw-semibold" style="opacity:.5;">Sélectionnez un ticket pour afficher la conversation</p>
+					</div>
+				{% else %}
+
+					{# ── Barre du haut ─────────────────── #}
+					<div class="chat-topbar">
+						<button class="btn-back-mobile" id="btnBackMobile" title="Retour" onclick="showSidebar()">
+							<i class="bi bi-arrow-left"></i>
+						</button>
+						<div class="chat-avatar">{{ selected.marchand|first|upper }}</div>
+						<div class="info">
+							<h6>{{ selected.title }}</h6>
+							<small>
+								Marchand :
+								<strong>{{ selected.marchand }}</strong>
+								{% if selected.createdAt %}
+									—
+									{{ selected.createdAt|date('d/m/Y H:i') }}
+								{% endif %}
+							</small>
+						</div>
+						<div class="ms-auto d-flex gap-2">
+							<a href="{{ path('app_ticket_edit', {id: selected.id}) }}" class="btn btn-sm btn-light" title="Modifier">
+								<i class="bi bi-pencil-fill" style="color:#128C7E;"></i>
+							</a>
+						</div>
+					</div>
+
+					{# ── Messages ──────────────────────── #}
+					<div
+						class="chat-messages" id="chatMessages">
+
+						{# ── Premier message = ticket racine ── #}
+						{% set isMe = app.user and selected.createdby and selected.createdby.id == app.user.id %}
+						<div class="msg-bubble-wrap {{ isMe ? 'me' : 'them' }}">
+							{% if not isMe %}
+								<div class="msg-sender-name">{{ selected.marchand }}</div>
+							{% endif %}
+							<div class="msg-bubble">
+								{% if selected.description %}
+									<div>{{ selected.description }}</div>
+								{% endif %}
+								{% if selected.attachmentPath %}
+									<div class="msg-attachment">
+										{% if selected.imageAttachment %}
+											<a href="{{ asset(selected.attachmentPath) }}" target="_blank" rel="noopener noreferrer">
+												<img src="{{ asset(selected.attachmentPath) }}" alt="{{ selected.attachmentOriginalName ?: 'Image jointe' }}" class="msg-attachment-image">
+											</a>
+										{% endif %}
+										<a href="{{ asset(selected.attachmentPath) }}" class="msg-attachment-link" target="_blank" rel="noopener noreferrer" download="{{ selected.attachmentOriginalName ?: 'fichier' }}">
+											<i class="bi bi-paperclip"></i>
+											<span>{{ selected.attachmentOriginalName ?: 'Télécharger le fichier' }}</span>
+										</a>
+									</div>
+								{% endif %}
+							</div>
+							<div class="msg-time">
+								{% if selected.createdAt %}
+									{{ selected.createdAt|date('H:i') }}
+								{% endif %}
+							</div>
+						</div>
+
+						{# ── Réponses ──────────────────── #}
+						{% for reply in replies %}
+							{% set isMe = app.user and reply.createdby and reply.createdby.id == app.user.id %}
+							<div class="msg-bubble-wrap {{ isMe ? 'me' : 'them' }}">
+								{% if not isMe %}
+									<div class="msg-sender-name">{{ reply.marchand }}</div>
+								{% endif %}
+								<div class="msg-bubble">
+									{% if reply.description %}
+										<div>{{ reply.description }}</div>
+									{% endif %}
+									{% if reply.attachmentPath %}
+										<div class="msg-attachment">
+											{% if reply.imageAttachment %}
+												<a href="{{ asset(reply.attachmentPath) }}" target="_blank" rel="noopener noreferrer">
+													<img src="{{ asset(reply.attachmentPath) }}" alt="{{ reply.attachmentOriginalName ?: 'Image jointe' }}" class="msg-attachment-image">
+												</a>
+											{% endif %}
+											<a href="{{ asset(reply.attachmentPath) }}" class="msg-attachment-link" target="_blank" rel="noopener noreferrer" download="{{ reply.attachmentOriginalName ?: 'fichier' }}">
+												<i class="bi bi-paperclip"></i>
+												<span>{{ reply.attachmentOriginalName ?: 'Télécharger le fichier' }}</span>
+											</a>
+										</div>
+									{% endif %}
+								</div>
+								<div class="msg-time">
+									{% if reply.createdAt %}
+										{{ reply.createdAt|date('H:i') }}
+									{% endif %}
+								</div>
+							</div>
+						{% endfor %}
+
+					</div>
+
+					{# /chat-messages #}
+
+					{# ── Zone de saisie ────────────────── #}
+					<form method="POST" action="{{ path('app_ticket_chat_reply', {id: selected.id}) }}" class="chat-input-area" id="replyForm" enctype="multipart/form-data">
+						<input type="hidden" name="_token" value="{{ csrf_token('reply' ~ selected.id) }}">
+						<label for="replyAttachment" class="btn-attach" title="Joindre un fichier">
+							<i class="bi bi-paperclip"></i>
+						</label>
+						<input type="file" name="reply_attachment" id="replyAttachment" accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx" class="d-none">
+						<textarea name="reply_text" id="replyText" rows="1" placeholder="Écrire un message…" onkeydown="handleEnter(event, this)"></textarea>
+						<span class="chat-file-meta" id="replyAttachmentName">Aucun fichier</span>
+						<button type="button" class="btn-send" title="Envoyer" onclick="document.getElementById('replyForm').submit()">
+							<i class="bi bi-send-fill"></i>
+						</button>
+					</form>
+
+				{% endif %}
+			</div>
+
+			{# ══════════════════════════════════════
+																								   MODAL — Créer un nouveau ticket
+																								   ══════════════════════════════════════ #}
+			<div class="modal fade" id="modalNewTicket" tabindex="-1">
+				<div class="modal-dialog modal-dialog-centered">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">
+								<i class="bi bi-plus-circle-fill me-2"></i>Nouveau ticket
+							</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+						</div>
+						<form id="new-ticket-form" method="POST" action="{{ path('app_ticket_chat') }}" enctype="multipart/form-data">
+							<div class="modal-body">
+								{{ form_widget(newForm.marchand, {attr: {class: 'form-control mb-3', placeholder: 'Nom du marchand'}}) }}
+								<label class="form-label fw-semibold">Titre</label>
+								{{ form_widget(newForm.title, {attr: {class: 'form-control mb-3', placeholder: 'Sujet du ticket'}}) }}
+								<label class="form-label fw-semibold">Message</label>
+								{{ form_widget(newForm.description, {attr: {class: 'form-control', rows: 4, placeholder: 'Description du problème…'}}) }}
+								<label class="form-label fw-semibold mt-3">Pièce jointe</label>
+								<input type="file" name="new_ticket_attachment" id="newTicketAttachment" class="form-control" accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx">
+								<div class="form-text">Images, PDF, Word, Excel ou texte brut, 10 Mo max.</div>
+								{{ form_rest(newForm) }}
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+								<button type="button" class="btn" style="background:#128C7E;color:#fff;" onclick="document.getElementById('new-ticket-form').submit()">
+									<i class="bi bi-send me-1"></i>Envoyer
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// ── Auto-scroll messages en bas ────────────
+
+
+(function () {
+const el = document.getElementById('chatMessages');
+if (el)
+el.scrollTop = el.scrollHeight;
+
+
+
+})();
+
+// ── Envoyer avec Entrée (Shift+Entrée = saut de ligne) ──
+function handleEnter(e, textarea) {
+if (e.key === 'Enter' && ! e.shiftKey) {
+e.preventDefault();
+const form = textarea.closest('form');
+const attachmentInput = form.querySelector('input[type="file"]');
+if (textarea.value.trim() || (attachmentInput && attachmentInput.files.length > 0))
+form.submit();
+
+
+
+}
+// Auto-resize
+textarea.style.height = 'auto';
+textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+}
+
+// ── Filtrer la liste des conversations ────
+function filterConversations(query) {
+const q = query.toLowerCase();
+document.querySelectorAll('#chatList .chat-list-item').forEach(function (item) {
+const t = (item.dataset.title || '') + ' ' + (
+item.dataset.marchand || ''
+);
+item.style.display = t.includes(q) ? 'flex' : 'none';
+});
+}
+
+// ── Navigation mobile ───────────────────
+function isMobile() {
+return window.innerWidth<= 768;
+}
+
+function showSidebar() {
+document.getElementById('chatSidebar').classList.remove('mobile-hidden');
+document.getElementById('chatMain').classList.add('mobile-hidden');
+}
+
+function showMain() {
+document.getElementById('chatSidebar').classList.add('mobile-hidden');
+document.getElementById('chatMain').classList.remove('mobile-hidden');
+}
+
+// Initialisation au chargement
+(function initMobileNav() {
+if (! isMobile())
+return;
+{% if selected is not null %}showMain();
+{% else %}showSidebar();{% endif %}
+})();
+
+// Clic sur un item de la liste → afficher la conversation
+document.querySelectorAll('#chatList .chat-list-item').forEach(function (item) {
+item.addEventListener('click', function () {
+if (isMobile())
+showMain();
+
+
+});
+});
+
+// Recalcul au resize
+window.addEventListener('resize', function () {
+const sidebar = document.getElementById('chatSidebar');
+const main = document.getElementById('chatMain');
+if (! isMobile()) {
+sidebar.classList.remove('mobile-hidden');
+main.classList.remove('mobile-hidden');
+}
+});
+
+const replyAttachmentInput = document.getElementById('replyAttachment');
+const replyAttachmentName = document.getElementById('replyAttachmentName');
+if (replyAttachmentInput && replyAttachmentName) {
+replyAttachmentInput.addEventListener('change', function () {
+replyAttachmentName.textContent = this.files.length ? this.files[0].name : 'Aucun fichier';
+});
+}
+
+const replyForm = document.getElementById('replyForm');
+if (replyForm) {
+replyForm.addEventListener('submit', function (event) {
+const textValue = document.getElementById('replyText')?.value.trim() || '';
+const hasFile = replyAttachmentInput && replyAttachmentInput.files.length> 0;
+if (!textValue && !hasFile) {
+event.preventDefault();
+}
+}
+);
+}
+
+
+	</script>
+{% endblock %}

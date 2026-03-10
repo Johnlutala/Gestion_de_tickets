@@ -2,6 +2,7 @@
 
 namespace App\Form;
 
+use App\Entity\Application;
 use App\Entity\Role;
 use App\Entity\User;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -21,6 +22,22 @@ class UserType extends AbstractType
     {
         $builder
 
+            ->add('nom', TextType::class, [
+                'label' => 'Nom',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Nom',
+                ],
+            ])
+            ->add('prenom', TextType::class, [
+                'label' => 'Prénom',
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Prénom',
+                ],
+            ])
             ->add('username', TextType::class, [
                 'label' => 'Nom d\'utilisateur',
                 'attr' => [
@@ -33,6 +50,20 @@ class UserType extends AbstractType
                     ),
                 ],
             ])
+            ->add('application', EntityType::class, [
+                'class' => Application::class,
+                'label' => 'Nom de l\'application',
+                'choice_label' => 'name',
+                'placeholder' => 'Sélectionnez une application',
+                'mapped' => true,
+                'expanded' => false,
+                'multiple' => false,
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-selects',
+                ],
+            ])
+
             ->add('profile', EntityType::class, [
                 'class' => Role::class,
                 'label' => 'Rôle',

@@ -16,28 +16,32 @@ class TicketRepository extends ServiceEntityRepository
         parent::__construct($registry, Ticket::class);
     }
 
-    //    /**
-    //     * @return Ticket[] Returns an array of Ticket objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Toutes les conversations racines (parent IS NULL), ordonnées par date desc.
+     *
+     * @return Ticket[]
+     */
+    public function findRootTickets(): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.parent IS NULL')
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 
-    //    public function findOneBySomeField($value): ?TbTicket
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Toutes les réponses d'un ticket racine, ordonnées chronologiquement.
+     *
+     * @return Ticket[]
+     */
+    public function findRepliesOf(Ticket $parent): array
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.parent = :parent')
+            ->setParameter('parent', $parent)
+            ->orderBy('t.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

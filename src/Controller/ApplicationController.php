@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Application;
 use App\Form\ApplicationType;
 use App\Repository\ApplicationRepository;
+use App\Repository\TicketRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,7 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/application', name: 'app_application_')]
 final class ApplicationController extends AbstractController
 {
-    #[Route('',name: 'index', methods: ['GET'])]
+    #[Route('', name: 'index', methods: ['GET'])]
     public function index(ApplicationRepository $applicationRepository): Response
     {
         return $this->render('application/index.html.twig', [
@@ -29,10 +31,23 @@ final class ApplicationController extends AbstractController
         $form = $this->createForm(ApplicationType::class, $application);
         $form->handleRequest($request);
 
+        // Si POST, récupérer les données postées pour diagnostic léger
+        if ($request->isMethod('POST')) {
+            $formName = $form->getName();
+            $allPosted = $request->request->all();
+            $postedData = is_array($allPosted) ? ($allPosted[$formName] ?? []) : [];
+            $postedToken = is_array($postedData) ? ($postedData['_token'] ?? null) : null;
+            $formToken = $form->has('_token') ? $form->get('_token')->getData() : null;
+
+            // Diagnostic: token imbriqué sous le nom du formulaire (ex: application[_token])
+            if (!$postedToken) {
+                $this->addFlash('danger', sprintf('Jeton CSRF manquant dans la requête POST (attendu sous "%s[_token]").', $formName));
+            } elseif ($formToken && $postedToken !== $formToken) {
+                $this->addFlash('danger', 'Jeton CSRF invalide ou modifié.');
+            }
+        }
 
         if ($form->isSubmitted() && $form->isValid()) {
-            
-            dd($form->getData());
             $entityManager->persist($application);
             $entityManager->flush();
 
@@ -76,13 +91,30 @@ final class ApplicationController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete', methods: ['POST'])]
-    public function delete(Request $request, Application $application, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$application->getId(), $request->getPayload()->getString('_token'))) {
+    public function delete(
+        Request $request,
+        Application $application,
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        TicketRepository $ticketRepository
+    ): Response {
+        $token = $request->request->get('_token');
+
+        if ($this->isCsrfTokenValid('delete' . $application->getId(), $token)) {
+            foreach ($userRepository->findBy(['application' => $application]) as $user) {
+                $user->setApplication(null);
+            }
+
+            foreach ($ticketRepository->findBy(['application' => $application]) as $ticket) {
+                $ticket->setApplication(null);
+            }
+
             $entityManager->remove($application);
             $entityManager->flush();
 
             $this->addFlash('success', 'Application supprimée avec succès !');
+        } else {
+            $this->addFlash('danger', 'Jeton CSRF invalide pour la suppression.');
         }
 
         return $this->redirectToRoute('app_application_index', [], Response::HTTP_SEE_OTHER);

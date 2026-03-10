@@ -16,9 +16,10 @@ class SecurityController extends AbstractController
         if ($this->getUser()) {
             return $this->redirectToRoute('app_home_index'); // redirige vers le menu
         }
+
+             // Debug: check if this is reached
         return $this->redirectToRoute('app_login');
     }
-
 
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
@@ -27,7 +28,7 @@ class SecurityController extends AbstractController
          if ($this->getUser()) {
             return $this->redirectToRoute('app_home_index'); // redirige vers le menu
         }
-         
+
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user

@@ -1,140 +1,123 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tickets index{% endblock %}
+{% block title %}-Tous les tickets
+{% endblock %}
 
 {% block body %}
-<div class="container">
+	<div class="container" style="margin-right: 20px;">
 
-    <div class="card mb-0">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h3 class="mb-0 fw-bold">
-                        <i class="bi bi-ticket-perforated-fill text-primary me-2"></i>
-                        Tickets
-                    </h3>
-                    <p class="text-muted mb-0">Gestion des tickets</p>
-                </div>
-                <a href="{{ path('app_ticket_new') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-plus-lg me-1"></i>
-                    Ajouter
-                </a>
-            </div>
-        </div>
-    </div>
+		<div class="card mb-0">
+			<div class="card-body">
+				<div class="d-flex justify-content-between align-items-center">
+					<div>
+						<h3 class="mb-0 fw-bold">
+							<i class="bi bi-ticket-perforated-fill text-primary me-2"></i>
+							Tickets
+						</h3>
+						<p class="text-muted mb-0">Gestion des tickets</p>
+					</div>
+					{% if app.user %}
+						<a href="{{ path('app_ticket_chat') }}" class="btn btn-primary btn-sm">
+							<i class="bi bi-plus-lg me-1"></i>
+							Ajouter
+						</a>
+					{% endif %}
 
-    <div class="table-responsive ">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>#</th>
-                    <th>Titre</th>
-                    <th>Description</th>
-                    <th>Marchand</th>
-                    <th>Note</th>
-                    <th>Noté</th>
-                    <th>Commentaire</th>
-                    <th>Actif</th>
-                    <th>Supprimé</th>
-                    <th>Année</th>
-                    <th>Mois</th>
-                    <th>Trimestre</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
+				</div>
+			</div>
+		</div>
 
-            <tbody>
-            {% for ticket in tickets %}
-                <tr>
+		<div class="table-responsive" style="padding-bottom: 20px;">
+			<table class="table table-hover align-middle">
+				<thead class="table-light">
+					<tr>
+						<th style="width: 10px;">#</th>
+						<th style="width: 200px;">Titre</th>
+						<th style="width: 350px;">Description</th>
+						<th style="width: 80px;">Marchand</th>
+						<th style="width: 50px;">Note</th>
+						<th style="width: 50px;">Actif</th>
+						<th class="text-end" style="width: 80px;">Actions</th>
+					</tr>
+				</thead>
 
-                    <td>{{ ticket.id }}</td>
+				<tbody>
+					{% for ticket in tickets %}
+						<tr>
 
-                    <td>
-                        <div class="fw-semibold">{{ ticket.title }}</div>
-                    </td>
+							<td>{{ loop.index }}</td>
 
-                    <td>{{ ticket.description }}</td>
+							<td>
+								<div class="fw-semibold">{{ ticket.title }}</div>
+							</td>
 
-                    <td>{{ ticket.marchand }}</td>
+							<td>{{ ticket.description }}</td>
 
-                    <td>
-                        <span class="badge bg-info">
-                            {{ ticket.note }}
-                        </span>
-                    </td>
+							<td>{{ ticket.marchand }}</td>
 
-                    <td>
-                        {% if ticket.noted %}
-                            <span class="badge bg-success">Oui</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Non</span>
-                        {% endif %}
-                    </td>
+							<td>
+								<span class="badge bg-info">
+									{{ ticket.note }}
+								</span>
+							</td>
 
-                    <td>{{ ticket.comment }}</td>
+							<td>
+								{% if ticket.enabled %}
+									<span class="badge bg-success">Active</span>
+								{% else %}
+									<span class="badge bg-danger">Inactive</span>
+								{% endif %}
+							</td>
 
-                    <td>
-                        {% if ticket.enabled %}
-                            <span class="badge bg-success">Oui</span>
-                        {% else %}
-                            <span class="badge bg-danger">Non</span>
-                        {% endif %}
-                    </td>
+							<td class="text-end">
 
-                    <td>
-                        {% if ticket.deleted %}
-                            <span class="badge bg-danger">Oui</span>
-                        {% else %}
-                            <span class="badge bg-success">Non</span>
-                        {% endif %}
-                    </td>
+								<div class="dropdown">
 
-                    <td>{{ ticket.year }}</td>
-                    <td>{{ ticket.month }}</td>
-                    <td>{{ ticket.quarter }}</td>
+									<button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+										<i class="bx bx-dots-vertical-rounded"></i>
+									</button>
 
-                    <td class="text-end">
+									<div class="dropdown-menu">
 
-                        <div class="dropdown">
+										<a href="{{ path('app_ticket_show', {'id': ticket.id}) }}" class="dropdown-item">
+											<i class="ti ti-eye me-1"></i>
+											Voir
+										</a>
 
-                            <button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                <i class="bx bx-dots-vertical-rounded"></i>
-                            </button>
+										<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="dropdown-item">
+											<i class="ti ti-pencil me-1"></i>
+											Modifier
+										</a>
 
-                            <div class="dropdown-menu">
+										<form id="delete-ticket-{{ ticket.id }}" method="post" action="{{ path('app_ticket_delete', {'id': ticket.id}) }}" class="d-none">
+											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ticket.id) }}">
+										</form>
+										<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer ce ticket ?')) { document.getElementById('delete-ticket-{{ ticket.id }}').submit(); }">
+											<i class="ti ti-trash me-1"></i>Supprimer
+										</a>
 
-                                <a href="{{ path('app_ticket_show', {'id': ticket.id}) }}" class="dropdown-item">
-                                    <i class="ti ti-eye me-1"></i>
-                                    Voir
-                                </a>
+									</div>
 
-                                <a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="dropdown-item">
-                                    <i class="ti ti-pencil me-1"></i>
-                                    Modifier
-                                </a>
+								</div>
 
-                            </div>
+							</td>
 
-                        </div>
+						</tr>
 
-                    </td>
+					{% else %}
 
-                </tr>
+						<tr>
+							<td colspan="13" class="text-center text-muted py-4">
+								<i class="bi bi-inbox fs-3 d-block mb-2"></i>
+								Aucun ticket trouvé
+							</td>
+						</tr>
 
-            {% else %}
+					{% endfor %}
+				</tbody>
 
-                <tr>
-                    <td colspan="13" class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                        Aucun ticket trouvé
-                    </td>
-                </tr>
+			</table>
+		</div>
 
-            {% endfor %}
-            </tbody>
-
-        </table>
-    </div>
-
-</div>
+	</div>
 {% endblock %}

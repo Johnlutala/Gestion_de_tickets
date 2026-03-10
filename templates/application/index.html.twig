@@ -1,13 +1,13 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} - Liste des applications{% endblock %}
+{% block title %}
+	- Liste des applications
+{% endblock %}
 
 {% block body %}
 
-	<div class="container">
-
+	<div class="container" style="margin-right: 20px;">
 		<div class="card mb-4">
-
 			<div class="card-body">
 
 				<div class="d-flex justify-content-between align-items-center mb-3">
@@ -30,7 +30,6 @@
 				{% if applications|length > 0 %}
 					<div class="table-responsive">
 						<table class="table table-hover align-middle">
-
 							<thead class="table-light">
 								<tr>
 									<th>#</th>
@@ -47,35 +46,38 @@
 										<td>{{ loop.index }}</td>
 										<td>
 											<div class="fw-semibold">
-												<span class="badge bg-info">{{ application.name }}</span>
+												<span class="badge bg-info text-white" style="font-size: 0.9rem; padding: 0.4rem 0.6rem;">
+													{{ application.name }}
+												</span>
 											</div>
 										</td>
 										<td>
-											<code class="text-muted small">{{ application.keyId|slice(0, 8) }}...</code>
-											<button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('{{ application.keyId }}')" title="Copier">
-												<i class="bi bi-clipboard"></i>
-											</button>
+											<code class="text-muted fs-5">{{ application.keyId|slice(0, 8) }}</code>
 										</td>
 										<td>
-											<code class="text-muted small">{{ application.secretKey|slice(0, 8) }}...</code>
-											<button class="btn btn-sm btn-outline-secondary ms-1" onclick="copyToClipboard('{{ application.secretKey }}')" title="Copier">
-												<i class="bi bi-clipboard"></i>
-											</button>
+											<code class="text-muted fs-5">{{ application.secretKey|slice(0, 8) }}</code>
 										</td>
-										<td class="text-end">
-											<div class="btn-group" role="group">
-												<a href="{{ path('app_application_show', {'id': application.id}) }}" class="btn btn-sm btn-outline-info" title="Voir">
-													<i class="bi bi-eye"></i>
-												</a>
-												<a href="{{ path('app_application_edit', {'id': application.id}) }}" class="btn btn-sm btn-outline-warning" title="Modifier">
-													<i class="bi bi-pencil"></i>
-												</a>
-												<form method="post" action="{{ path('app_application_delete', {'id': application.id}) }}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette application ?');">
-													<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
-													<button class="btn btn-sm btn-outline-danger" title="Supprimer">
-														<i class="bi bi-trash"></i>
+										<td>
+											<div class="d-flex justify-content-end">
+												<div class="dropdown">
+													<button type="button" class="btn p-0 dropdown-toggle" data-bs-toggle="dropdown">
+														<i class="bx bx-dots-vertical-rounded"></i>
 													</button>
-												</form>
+													<div class="dropdown-menu">
+														<a href="{{ path('app_application_show', {'id': application.id}) }}" class="dropdown-item">
+															<i class="ti ti-eye me-1"></i>Voir
+														</a>
+														<a href="{{ path('app_application_edit', {'id': application.id}) }}" class="dropdown-item">
+															<i class="ti ti-pencil me-1"></i>Modifier
+														</a>
+														<form id="delete-application-{{ application.id }}" method="post" action="{{ path('app_application_delete', {'id': application.id}) }}" class="d-none">
+															<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ application.id) }}">
+														</form>
+														<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer cette application ?')) { document.getElementById('delete-application-{{ application.id }}').submit(); }">
+															<i class="ti ti-trash me-1"></i>Supprimer
+														</a>
+													</div>
+												</div>
 											</div>
 										</td>
 									</tr>
@@ -98,29 +100,31 @@
 	</div>
 
 	<script>
-	function copyToClipboard(text) {
-		navigator.clipboard.writeText(text).then(function() {
-			showNotification('Copié dans le presse-papiers !', 'success');
-		}, function(err) {
-			console.error('Erreur lors de la copie: ', err);
-			showNotification('Erreur lors de la copie', 'error');
-		});
-	}
+		function copyToClipboard(text) {
+navigator.clipboard.writeText(text).then(function () {
+showNotification('Copié dans le presse-papiers !', 'success');
+}, function (err) {
+console.error('Erreur lors de la copie: ', err);
+showNotification('Erreur lors de la copie', 'error');
+});
+}
 
-	function showNotification(message, type) {
-		const notification = document.createElement('div');
-		notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
-		notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-		notification.innerHTML = `
+function showNotification(message, type) {
+const notification = document.createElement('div');
+notification.className = `alert alert-${
+type === 'success' ? 'success' : 'danger'
+} alert-dismissible fade show position-fixed`;
+notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+notification.innerHTML = `
 			${message}
 			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 		`;
-		document.body.appendChild(notification);
+document.body.appendChild(notification);
 
-		setTimeout(() => {
-			notification.remove();
-		}, 3000);
-	}
+setTimeout(() => {
+notification.remove();
+}, 3000);
+}
 	</script>
 
 {% endblock %}

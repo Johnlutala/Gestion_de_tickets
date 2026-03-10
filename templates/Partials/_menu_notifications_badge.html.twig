@@ -1,0 +1,12 @@
+{% if count > 0 %}
+	<div class="notify">
+		<span class="heartbit"></span>
+		<span class="point"></span>
+		<span class="badge-count" style="position:absolute;top:-6px;right:-6px;background:#dc3545;color:#fff;padding:2px 6px;border-radius:12px;font-size:0.75rem;">{{ count }}</span>
+	</div>
+{% else %}
+	<div class="notify">
+		<span class="heartbit"></span>
+		<span class="point"></span>
+	</div>
+{% endif %}

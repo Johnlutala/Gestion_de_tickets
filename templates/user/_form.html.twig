@@ -1,23 +1,45 @@
-
 {{ form_start(form, {'attr': {'id': 'user-form', 'class': 'p-3 rounded shadow-sm bg-white'}}) }}
-<div class="row">
+
+<div
+	class="row mt-2">
 	{# Nom d'utilisateur #}
-	<div class="col-md-6 mb-3">
-		{{ form_label(form.username, "Nom d'utilisateur", {'label_attr': {'class': 'form-label fw-bold'}}) }}
-		{{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Ex: john.jk'}}) }}
-		{{ form_errors(form.username) }}
+	<div class="col-md-4 mb-3">
+		{{ form_label(form.nom, "Nom", {'label_attr': {'class': 'form-label fw-bold'}}) }}
+		{{ form_widget(form.nom, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nom ...'}}) }}
+		{{ form_errors(form.nom) }}
 	</div>
 
 	{# Profil / Rôle #}
-	<div class="col-md-6 mb-3">
-			{{ form_label(form.profile, 'Profile', {'label_attr': {'class': 'form-label'}}) }}
-			{{ form_widget(form.profile, {'attr': {'class': 'form-select ms'}}) }}
-			{{ form_errors(form.profile) }}
+	<div class="col-md-4 mb-3">
+		{{ form_label(form.prenom, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
+		{{ form_widget(form.prenom, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre prénom ...'}}) }}
+		{{ form_errors(form.prenom) }}
+	</div>
 
+	<div class="col-md-4 mb-3">
+		{{ form_label(form.username, "Nom d'utilisateur", {'label_attr': {'class': 'form-label fw-bold'}}) }}
+		{{ form_widget(form.username, {'attr': {'class': 'form-control', 'placeholder': 'Entrez votre nom d\'utilisateur ...'}}) }}
+		{{ form_errors(form.username) }}
 	</div>
 </div>
 
+
 <div class="row mt-2">
+	<div class="col-md-6 mb-3">
+			{{ form_label(form.application, 'Nom de l\'application', {'label_attr': {'class': 'form-label'}}) }}
+		{{ form_widget(form.application, {'attr': {'class': 'form-select ms'}}) }}
+		{{ form_errors(form.application) }}
+	</div>
+	<div class="col-md-6 mb-3">
+		{{ form_label(form.profile, 'Profile', {'label_attr': {'class': 'form-label'}}) }}
+		{{ form_widget(form.profile, {'attr': {'class': 'form-select ms'}}) }}
+		{{ form_errors(form.profile) }}
+	</div>
+
+</div>
+
+<div
+	class="row mt-2">
 	{# Mot de passe #}
 	<div class="col-md-6 mb-3">
 		{{ form_label(form.plainPassword.first, "Mot de passe", {'label_attr': {'class': 'form-label fw-bold'}}) }}
