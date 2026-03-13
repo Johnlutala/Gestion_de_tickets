@@ -3,26 +3,18 @@
 {% block title %}-Tous les tickets
 {% endblock %}
 
+{% block stylesheets %}
+	{{ parent() }}
+	<link rel="stylesheet" href="{{ asset('styles/ticket-index.css') }}">
+{% endblock %}
+
 {% block javascripts %}
 	{{ parent() }}
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-const form = document.getElementById('ticket-filter-form');
-if (! form) {
-return;
-}
-
-form.querySelectorAll('select, input[type="date"]').forEach(function (field) {
-field.addEventListener('change', function () {
-form.submit();
-});
-});
-});
-	</script>
+	<script src="{{ asset('js/ticket-index.js') }}"></script>
 {% endblock %}
 
 {% block body %}
-<div class="container" style="margin-right: 20px;">
+<div class="container ticket-index-page" style="margin-right: 20px;">
 	<div class="card mb-4">
 		<div class="card-body">
 			<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start mb-3">
@@ -34,15 +26,15 @@ form.submit();
 					<p class="text-muted mb-0">{{ isTrashView|default(false) ? 'Restaurer les tickets supprimés logiquement' : 'Gérer les tickets par marchand, utilisateur et date' }}</p>
 				</div>
 				<div class="d-flex align-items-center gap-2">
-					{% if is_granted('ROLE_ADMIN') %}
-						<a href="{{ isTrashView|default(false) ? path('app_ticket_index') : path('app_ticket_deleted') }}" class="btn btn-outline-secondary btn-sm">
-							<i class="bi {{ isTrashView|default(false) ? 'bi-arrow-left' : 'bi-trash' }} me-1"></i>
-							{{ isTrashView|default(false) ? 'Retour aux tickets' : 'Corbeille' }}
-						</a>
-					{% endif %}
 					{% if not isTrashView|default(false) %}
 						<a href="{{ path('app_ticket_chat') }}" class="btn btn-primary btn-sm">
 							<i class="bi bi-plus-lg me-1"></i>Ajouter
+						</a>
+					{% endif %}
+					{% if is_granted('ROLE_ADMIN') %}
+						<a href="{{ isTrashView|default(false) ? path('app_ticket_index') : path('app_ticket_deleted') }}" class="btn btn-outline-secondary btn-sm">
+							<i class="bi {{ isTrashView|default(false) ? 'bi-arrow-left' : 'bi-trash' }} me-1"></i>
+							{{ isTrashView|default(false) ? 'Retour' : 'Corbeille' }}
 						</a>
 					{% endif %}
 				</div>
@@ -105,8 +97,9 @@ form.submit();
 							{% endfor %}
 						</select>
 					</div> #}
+
 					<div class="col-sm-6 col-lg-2 align-self-end">
-						<button type="submit" class="btn btn-outline-primary btn-sm w-100" style="display:none;">
+						<button type="submit" class="btn btn-outline-primary btn-sm w-100 ticket-filter-submit">
 							<i class="bi bi-filter me-1"></i>Filtrer
 						</button>
 					</div>
@@ -171,7 +164,7 @@ form.submit();
 				{% endif %}
 				{% if not isTrashView|default(false) and searchQuery %}
 					<div class="col-auto">
-						<span class="badge text-white" style="background-color: #6f42c1;">
+						<span class="badge text-white ticket-search-badge">
 							<i class="bi bi-search me-1"></i>
 							{{ searchQuery }}
 						</span>
@@ -188,19 +181,19 @@ form.submit();
 		</div>
 	</div>
 
-	<div class="table-responsive" style="padding-bottom: 20px;">
+	<div class="table-responsive ticket-table-responsive">
 		<table class="table table-hover align-middle">
 			<thead class="table-light">
 				<tr>
-					<th style="width: 10px;">#</th>
-					<th style="width: 200px;">Titre</th>
-					<th style="width: 80px;">Crée par (Marchand)</th>
-					<th style="width: 350px;">Description</th>
-					<th style="width: 80px;">Intervenu par</th>
-					<th style="width: 450px;">Commentaire</th>
-					<th style="width: 50px;">Note</th>
-					<th style="width: 50px;">Actif</th>
-					<th class="text-end" style="width: 80px;">Actions</th>
+					<th class="ticket-col-id">#</th>
+					<th class="ticket-col-title">Titre</th>
+					<th class="ticket-col-merchant">Crée par (Marchand)</th>
+					<th class="ticket-col-description">Description</th>
+					<th class="ticket-col-owner">Intervenu(Admin)</th>
+					<th class="ticket-col-comment">Commentaire</th>
+					<th class="ticket-col-note">Note</th>
+					<th class="ticket-col-status">Actif</th>
+					<th class="text-end ticket-col-actions">Actions</th>
 				</tr>
 			</thead>
 
@@ -212,11 +205,11 @@ form.submit();
 							<div class="fw-semibold">{{ ticket.title }}</div>
 						</td>
 						<td>{{ ticket.marchand }}</td>
-						<td style="width: 350px;">{{ ticket.description }}</td>
+						<td class="ticket-col-description">{{ ticket.description }}</td>
 						<td>{{ ticket.createdby ? ticket.createdby.nom : '—' }}</td>
-						<td style="width: 450px;">{{ ticket.comment ? ticket.comment|nl2br : '—' }}</td>
+						<td class="ticket-col-comment">{{ ticket.comment ? ticket.comment|nl2br : '—' }}</td>
 						<td>
-							<span class="badge bg-info">{{ ticket.note }}</span>
+							<span class="badge bg-info">{{ ticket.note ? ticket.note : 'true' }}</span>
 						</td>
 						<td>
 							{% if ticket.enabled %}
@@ -243,14 +236,14 @@ form.submit();
 										<form id="delete-ticket-{{ ticket.id }}" method="post" action="{{ path('app_ticket_delete', {'id': ticket.id}) }}" class="d-none">
 											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ticket.id) }}">
 										</form>
-										<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer ce ticket ?')) { document.getElementById('delete-ticket-{{ ticket.id }}').submit(); }">
+										<a href="#" class="dropdown-item text-danger js-submit-form-link" data-form-id="delete-ticket-{{ ticket.id }}" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
 											<i class="ti ti-trash me-1"></i>Supprimer
 										</a>
 									{% elseif isTrashView|default(false) and is_granted('ROLE_ADMIN') %}
 										<form id="restore-ticket-{{ ticket.id }}" method="post" action="{{ path('app_ticket_restore', {'id': ticket.id}) }}" class="d-none">
 											<input type="hidden" name="_token" value="{{ csrf_token('restore' ~ ticket.id) }}">
 										</form>
-										<a href="#" class="dropdown-item text-success" onclick="event.preventDefault(); if (confirm('Voulez-vous restaurer ce ticket ?')) { document.getElementById('restore-ticket-{{ ticket.id }}').submit(); }">
+										<a href="#" class="dropdown-item text-success js-submit-form-link" data-form-id="restore-ticket-{{ ticket.id }}" data-confirm-message="Voulez-vous restaurer ce ticket ?">
 											<i class="ti ti-rotate-clockwise me-1"></i>Restaurer
 										</a>
 									{% endif %}
@@ -271,21 +264,33 @@ form.submit();
 	</div>
 
 	{% if not isTrashView|default(false) and totalPages is defined and currentPage is defined and totalPages > 1 %}
+		{% set paginationParams = {
+			q: searchQuery|default(''),
+			marchand: selectedMarchand|default(''),
+			user: selectedUser|default(''),
+			date: selectedDate|default(''),
+			year: selectedYear|default(''),
+			month: selectedMonth|default(''),
+			quarter: selectedQuarter|default('')
+		} %}
 		<nav aria-label="Pagination tickets" class="mt-3 d-flex justify-content-end">
 			<ul class="pagination pagination-sm mb-0">
-				<li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
-					<a class="page-link" href="{% if currentPage > 1 %}{{ path('app_ticket_index', { page: currentPage - 1, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}{% else %}#{% endif %}">&lt;</a>
+				<li class="page-item {{ currentPage == 1 ? 'disabled' : '' }}">
+					<a class="page-link" href="{{ currentPage > 1 ? path('app_ticket_index', paginationParams|merge({ page: currentPage - 1 })) : '#' }}">&lt;</a>
 				</li>
 				{% for page in 1..totalPages %}
-					<li class="page-item {% if page == currentPage %}active{% endif %}">
-						<a class="page-link" href="{{ path('app_ticket_index', { page: page, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}">{{ page }}</a>
+					<li class="page-item {{ page == currentPage ? 'active' : '' }}">
+						<a class="page-link" href="{{ path('app_ticket_index', paginationParams|merge({ page: page })) }}">{{ page }}</a>
 					</li>
 				{% endfor %}
-				<li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
-					<a class="page-link" href="{% if currentPage < totalPages %}{{ path('app_ticket_index', { page: currentPage + 1, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}{% else %}#{% endif %}">&gt;</a>
+				<li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+						<li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+					<a class="page-link" href="{{ currentPage < totalPages ? path('app_ticket_index', paginationParams|merge({ page: currentPage + 1 })) : '#' }}">&gt;</a>
 				</li>
 			</ul>
 		</nav>
 	{% endif %}
-</div>
+	</div>
 {% endblock %}
+
+

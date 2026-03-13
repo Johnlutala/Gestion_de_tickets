@@ -1,0 +1,42 @@
+.ticket-index-page {
+    margin-right: 20px;
+}
+
+.ticket-filter-submit {
+    display: none;
+}
+
+.ticket-search-badge {
+    background-color: #6f42c1;
+}
+
+.ticket-table-responsive {
+    padding-bottom: 20px;
+}
+
+.ticket-col-id {
+    width: 10px;
+}
+
+.ticket-col-title {
+    width: 200px;
+}
+
+.ticket-col-merchant,
+.ticket-col-owner,
+.ticket-col-actions {
+    width: 80px;
+}
+
+.ticket-col-description {
+    width: 350px;
+}
+
+.ticket-col-comment {
+    width: 450px;
+}
+
+.ticket-col-note,
+.ticket-col-status {
+    width: 50px;
+}

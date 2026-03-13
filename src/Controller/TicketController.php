@@ -19,16 +19,9 @@ final class TicketController extends AbstractController
     private const CHAT_UPLOAD_DIR = 'uploads/tickets';
     private const MAX_UPLOAD_SIZE = 10485760;
     private const ALLOWED_MIME_TYPES = [
-        'image/jpeg',
-        'image/png',
-        'image/gif',
-        'image/webp',
-        'application/pdf',
-        'text/plain',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg', 'image/png','image/gif','image/webp','application/pdf',
+        'text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
 
     // ──────────────────────────────────────────────
@@ -511,6 +504,20 @@ final class TicketController extends AbstractController
             return $this->redirectToRoute('app_ticket_chat');
         }
 
+        $root = $this->resolveRootTicket($ticket);
+
+        if (!$this->canAccessTicket($root)) {
+            throw $this->createAccessDeniedException('Accès refusé à ce ticket.');
+        }
+
+        if (!$root->isEnabled()) {
+            $this->addFlash('error', 'Ce ticket est deja cloturé.');
+
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ]);
+        }
+
         $text = trim((string) $request->request->get('reply_text', ''));
         $attachment = $request->files->get('reply_attachment');
 
@@ -518,12 +525,9 @@ final class TicketController extends AbstractController
             $this->addFlash('error', 'Ajoutez un message ou un fichier avant l\'envoi.');
 
             return $this->redirectToRoute('app_ticket_chat_show', [
-                'id' => $ticket->isRootTicket() ? $ticket->getId() : $ticket->getParent()->getId(),
+                'id' => $root->getId(),
             ]);
         }
-
-        // Si ce ticket est lui-même une réponse, on remonte au parent racine
-        $root = $ticket->isRootTicket() ? $ticket : $ticket->getParent();
 
         $reply = new Ticket();
         $reply->setTitle($root->getTitle());
@@ -571,7 +575,95 @@ final class TicketController extends AbstractController
         $em->flush();
 
         return $this->redirectToRoute('app_ticket_chat_show', [
-            'id' => $ticket->isRootTicket() ? $ticket->getId() : $ticket->getParent()->getId(),
+            'id' => $root->getId(),
+        ]);
+    }
+
+    #[Route('/{id}/evaluate', name: 'evaluate', methods: ['POST'])]
+    public function evaluate(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
+    {
+        $root = $this->resolveRootTicket($ticket);
+
+        if (!$this->isCsrfTokenValid('evaluate' . $root->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        if (!$this->isMerchantOwner($root)) {
+            throw $this->createAccessDeniedException('Seul le marchand propriétaire peut évaluer ce ticket.');
+        }
+
+        if ($root->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_chat');
+        }
+
+        if ($root->getNote() !== null && $root->getNote() > 0) {
+            $this->addFlash('info', 'Ce ticket a déjà été évalué.');
+
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ]);
+        }
+
+        $note = $request->request->getInt('note', -1);
+        if ($note < 1 || $note > 20) {
+            $this->addFlash('error', 'La note doit être comprise entre 1 et 20.');
+
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ]);
+        }
+
+        $root->setNote($note);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Le ticket a été évalué avec succès.');
+
+        return $this->redirectToRoute('app_ticket_chat_show', [
+            'id' => $root->getId(),
+        ]);
+    }
+
+    #[Route('/{id}/close', name: 'close', methods: ['POST'])]
+    public function close(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
+    {
+        $root = $this->resolveRootTicket($ticket);
+
+        if (!$this->isCsrfTokenValid('close' . $root->getId(), (string) $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        if (!$this->isMerchantOwner($root)) {
+            throw $this->createAccessDeniedException('Seul le marchand propriétaire peut clôturer ce ticket.');
+        }
+
+        if ($root->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_chat');
+        }
+
+        if (($root->getNote() ?? 0) <= 0) {
+            $this->addFlash('error', 'Le ticket doit être évalué avant d\'être clôturé.');
+
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ]);
+        }
+
+        if (!$root->isEnabled()) {
+            $this->addFlash('info', 'Ce ticket est déjà clôturé.');
+
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ]);
+        }
+
+        $root->setNoted(true);
+        $root->setEnabled(false);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Le ticket a été clôturé.');
+
+        return $this->redirectToRoute('app_ticket_chat_show', [
+            'id' => $root->getId(),
         ]);
     }
 
@@ -619,8 +711,11 @@ final class TicketController extends AbstractController
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_MARCHAND')]
-    public function edit(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
-    {
+    public function edit(
+        Request $request,
+        Ticket $ticket,
+        EntityManagerInterface $entityManager
+    ): Response {
         if ($ticket->isDeleted()) {
             return $this->redirectToRoute('app_ticket_index');
         }
@@ -656,13 +751,26 @@ final class TicketController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
-        if (!$ticket->isDeleted() && $this->isCsrfTokenValid('delete' . $ticket->getId(), $request->request->get('_token'))) {
-            $ticket->setDeleted(true);
+        $root = $this->resolveRootTicket($ticket);
+
+        if (!$this->canManageTicket($root)) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer ce ticket.');
+        }
+
+        if (!$root->isDeleted() && $this->isCsrfTokenValid('delete' . $root->getId(), (string) $request->request->get('_token'))) {
+            $root->setDeleted(true);
+            foreach ($root->getReplies() as $reply) {
+                $reply->setDeleted(true);
+            }
             $entityManager->flush();
             $this->addFlash('success', 'Le ticket a été déplacé dans la corbeille.');
+        }
+
+        $redirectTo = (string) $request->request->get('redirect_to', 'index');
+        if ($redirectTo === 'chat') {
+            return $this->redirectToRoute('app_ticket_chat', [], Response::HTTP_SEE_OTHER);
         }
 
         return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
@@ -674,6 +782,9 @@ final class TicketController extends AbstractController
     {
         if ($ticket->isDeleted() && $this->isCsrfTokenValid('restore' . $ticket->getId(), (string) $request->request->get('_token'))) {
             $ticket->setDeleted(false);
+            foreach ($ticket->getReplies() as $reply) {
+                $reply->setDeleted(false);
+            }
             $entityManager->flush();
             $this->addFlash('success', 'Le ticket a été restauré.');
         }
@@ -718,5 +829,42 @@ final class TicketController extends AbstractController
         $ticket->setAttachmentSize($fileSize);
 
         return null;
+    }
+
+    private function resolveRootTicket(Ticket $ticket): Ticket
+    {
+        return $ticket->isRootTicket() ? $ticket : ($ticket->getParent() ?? $ticket);
+    }
+
+    private function canAccessTicket(Ticket $ticket): bool
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return true;
+        }
+
+        return $this->isMerchantOwner($ticket);
+    }
+
+    private function canManageTicket(Ticket $ticket): bool
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return true;
+        }
+
+        return $this->isMerchantOwner($ticket);
+    }
+
+    private function isMerchantOwner(Ticket $ticket): bool
+    {
+        if (!$this->isGranted('ROLE_MARCHAND')) {
+            return false;
+        }
+
+        $creator = $ticket->getCreatedby();
+        $currentUser = $this->getUser();
+
+        return $creator instanceof \App\Entity\User
+            && $currentUser instanceof \App\Entity\User
+            && $creator->getId() === $currentUser->getId();
     }
 }
