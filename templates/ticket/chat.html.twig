@@ -14,7 +14,7 @@
 			box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
 			background: #f0f2f5;
 			overflow: hidden;
-			margin-left: 120px;
+			margin-left: 150px;
 		}
 
 		/* ── Panel gauche : liste conversations ─── */
@@ -381,9 +381,11 @@
 				<div class="chat-sidebar-header">
 					<h5>
 						<i class="bi bi-chat-dots-fill me-2"></i>Tickets</h5>
+                        {% if is_granted('ROLE_MARCHAND') %}
 					<button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalNewTicket" title="Nouveau ticket">
 						<i class="bi bi-plus-lg" style="color: #0d0070;"></i>
 					</button>
+                        {% endif %}
 				</div>
 				<div class="chat-sidebar-search">
 					<input type="text" id="searchConv" class="form-control form-control-sm w-100" placeholder="Rechercher un ticket…" oninput="filterConversations(this.value)">
@@ -454,9 +456,11 @@
 							</small>
 						</div>
 						<div class="ms-auto d-flex gap-2">
+                        {% if is_granted('ROLE_MARCHAND') %}
 							<a href="{{ path('app_ticket_edit', {id: selected.id}) }}" class="btn btn-sm btn-light" title="Modifier">
 								<i class="bi bi-pencil-fill" style="color:#128C7E;"></i>
 							</a>
+                        {% endif %}
 						</div>
 					</div>
 

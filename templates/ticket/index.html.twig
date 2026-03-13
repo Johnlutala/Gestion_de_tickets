@@ -3,121 +3,289 @@
 {% block title %}-Tous les tickets
 {% endblock %}
 
-{% block body %}
-	<div class="container" style="margin-right: 20px;">
+{% block javascripts %}
+	{{ parent() }}
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const form = document.getElementById('ticket-filter-form');
+if (! form) {
+return;
+}
 
-		<div class="card mb-0">
-			<div class="card-body">
-				<div class="d-flex justify-content-between align-items-center">
-					<div>
-						<h3 class="mb-0 fw-bold">
-							<i class="bi bi-ticket-perforated-fill text-primary me-2"></i>
-							Tickets
-						</h3>
-						<p class="text-muted mb-0">Gestion des tickets</p>
-					</div>
-					{% if app.user %}
-						<a href="{{ path('app_ticket_chat') }}" class="btn btn-primary btn-sm">
-							<i class="bi bi-plus-lg me-1"></i>
-							Ajouter
+form.querySelectorAll('select, input[type="date"]').forEach(function (field) {
+field.addEventListener('change', function () {
+form.submit();
+});
+});
+});
+	</script>
+{% endblock %}
+
+{% block body %}
+<div class="container" style="margin-right: 20px;">
+	<div class="card mb-4">
+		<div class="card-body">
+			<div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-start mb-3">
+				<div class="mb-3 mb-lg-0">
+					<h3 class="mb-1 fw-bold">
+						<i class="bi bi-ticket-perforated-fill text-primary me-2"></i>
+						{{ isTrashView|default(false) ? 'Corbeille des tickets' : 'Tickets' }}
+					</h3>
+					<p class="text-muted mb-0">{{ isTrashView|default(false) ? 'Restaurer les tickets supprimés logiquement' : 'Gérer les tickets par marchand, utilisateur et date' }}</p>
+				</div>
+				<div class="d-flex align-items-center gap-2">
+					{% if is_granted('ROLE_ADMIN') %}
+						<a href="{{ isTrashView|default(false) ? path('app_ticket_index') : path('app_ticket_deleted') }}" class="btn btn-outline-secondary btn-sm">
+							<i class="bi {{ isTrashView|default(false) ? 'bi-arrow-left' : 'bi-trash' }} me-1"></i>
+							{{ isTrashView|default(false) ? 'Retour aux tickets' : 'Corbeille' }}
 						</a>
 					{% endif %}
-
+					{% if not isTrashView|default(false) %}
+						<a href="{{ path('app_ticket_chat') }}" class="btn btn-primary btn-sm">
+							<i class="bi bi-plus-lg me-1"></i>Ajouter
+						</a>
+					{% endif %}
 				</div>
 			</div>
+
+			{% if not isTrashView|default(false) %}
+				<form method="get" id="ticket-filter-form" class="row g-2 mt-3">
+					<input type="hidden" name="q" value="{{ searchQuery|default('') }}">
+					<div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">Marchand</label>
+						<select name="marchand" id="ticket-marchand-select" class="form-select form-select-sm">
+							<option value="">Tous les tickets</option>
+							{% for marchand in marchands %}
+								<option value="{{ marchand.id }}" {{ selectedMarchand == marchand.id ? 'selected' : '' }}>
+									{{ marchand.username }}
+								</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">User (Admin)</label>
+						<select name="user" id="ticket-user-select" class="form-select form-select-sm">
+							<option value="">Tous les admins</option>
+							{% for admin in admins %}
+								<option value="{{ admin.id }}" {{ selectedUser == admin.id ? 'selected' : '' }}>
+									{{ admin.username }}
+								</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">Date</label>
+						<input type="date" name="date" id="ticket-date-input" class="form-control form-control-sm" value="{{ selectedDate|default('') }}">
+					</div>
+
+					{# <div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">Annee</label>
+						<select name="year" id="ticket-year-select" class="form-select form-select-sm">
+							<option value="">Toutes les annees</option>
+							{% for year in availableYears|default([]) %}
+								<option value="{{ year }}" {{ selectedYear == year ? 'selected' : '' }}>{{ year }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">Mois</label>
+						<select name="month" id="ticket-month-select" class="form-select form-select-sm">
+							<option value="">Tous les mois</option>
+							{% for monthValue, monthLabel in monthChoices|default([]) %}
+								<option value="{{ monthValue }}" {{ selectedMonth == monthValue ? 'selected' : '' }}>{{ monthLabel }}</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-sm-6 col-lg-4">
+						<label class="form-label text-uppercase small text-muted mb-1">Trimestre</label>
+						<select name="quarter" id="ticket-quarter-select" class="form-select form-select-sm">
+							<option value="">Tous les trimestres</option>
+							{% for quarterValue, quarterLabel in quarterChoices|default([]) %}
+								<option value="{{ quarterValue }}" {{ selectedQuarter == quarterValue ? 'selected' : '' }}>{{ quarterLabel }}</option>
+							{% endfor %}
+						</select>
+					</div> #}
+					<div class="col-sm-6 col-lg-2 align-self-end">
+						<button type="submit" class="btn btn-outline-primary btn-sm w-100" style="display:none;">
+							<i class="bi bi-filter me-1"></i>Filtrer
+						</button>
+					</div>
+				</form>
+			{% endif %}
+
+			<div class="row g-2 mt-3">
+				<div class="col-auto">
+					<span class="badge bg-primary fs-6">
+						<i class="bi bi-ticket-perforated me-1"></i>Total:
+						{{ totalItems|default(tickets|length) }}
+					</span>
+				</div>
+				{% if not isTrashView|default(false) and selectedMarchandLabel %}
+					<div class="col-auto">
+						<span class="badge bg-info text-dark">
+							<i class="bi bi-person-badge me-1"></i>
+							{{ selectedMarchandLabel }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and selectedUserLabel %}
+					<div class="col-auto">
+						<span class="badge bg-secondary">
+							<i class="bi bi-person me-1"></i>
+							{{ selectedUserLabel }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and selectedDate %}
+					<div class="col-auto">
+						<span class="badge bg-dark">
+							<i class="bi bi-calendar me-1"></i>
+							{{ selectedDate }}
+						</span>
+					</div>
+				{% endif %}
+
+				{% if not isTrashView|default(false) and selectedYear %}
+					<div class="col-auto">
+						<span class="badge bg-warning text-dark">
+							<i class="bi bi-calendar3 me-1"></i>
+							{{ selectedYear }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and selectedMonthLabel %}
+					<div class="col-auto">
+						<span class="badge bg-info text-dark">
+							<i class="bi bi-calendar2-month me-1"></i>
+							{{ selectedMonthLabel }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and selectedQuarterLabel %}
+					<div class="col-auto">
+						<span class="badge bg-secondary">
+							<i class="bi bi-calendar-range me-1"></i>
+							{{ selectedQuarterLabel }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and searchQuery %}
+					<div class="col-auto">
+						<span class="badge text-white" style="background-color: #6f42c1;">
+							<i class="bi bi-search me-1"></i>
+							{{ searchQuery }}
+						</span>
+					</div>
+				{% endif %}
+				{% if not isTrashView|default(false) and (selectedMarchand or selectedUser or selectedDate or selectedYear or selectedMonth or selectedQuarter or searchQuery) %}
+					<div class="col-auto">
+						<a href="{{ path('app_ticket_index') }}" class="badge bg-danger text-decoration-none">
+							<i class="bi bi-arrow-repeat me-0"></i>
+						</a>
+					</div>
+				{% endif %}
+			</div>
 		</div>
+	</div>
 
-		<div class="table-responsive" style="padding-bottom: 20px;">
-			<table class="table table-hover align-middle">
-				<thead class="table-light">
+	<div class="table-responsive" style="padding-bottom: 20px;">
+		<table class="table table-hover align-middle">
+			<thead class="table-light">
+				<tr>
+					<th style="width: 10px;">#</th>
+					<th style="width: 200px;">Titre</th>
+					<th style="width: 80px;">Crée par (Marchand)</th>
+					<th style="width: 350px;">Description</th>
+					<th style="width: 80px;">Intervenu par</th>
+					<th style="width: 450px;">Commentaire</th>
+					<th style="width: 50px;">Note</th>
+					<th style="width: 50px;">Actif</th>
+					<th class="text-end" style="width: 80px;">Actions</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				{% for ticket in tickets %}
 					<tr>
-						<th style="width: 10px;">#</th>
-						<th style="width: 200px;">Titre</th>
-						<th style="width: 350px;">Description</th>
-						<th style="width: 80px;">Marchand</th>
-						<th style="width: 50px;">Note</th>
-						<th style="width: 50px;">Actif</th>
-						<th class="text-end" style="width: 80px;">Actions</th>
-					</tr>
-				</thead>
-
-				<tbody>
-					{% for ticket in tickets %}
-						<tr>
-
-							<td>{{ loop.index }}</td>
-
-							<td>
-								<div class="fw-semibold">{{ ticket.title }}</div>
-							</td>
-
-							<td>{{ ticket.description }}</td>
-
-							<td>{{ ticket.marchand }}</td>
-
-							<td>
-								<span class="badge bg-info">
-									{{ ticket.note }}
-								</span>
-							</td>
-
-							<td>
-								{% if ticket.enabled %}
-									<span class="badge bg-success">Active</span>
-								{% else %}
-									<span class="badge bg-danger">Inactive</span>
-								{% endif %}
-							</td>
-
-							<td class="text-end">
-
-								<div class="dropdown">
-
-									<button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-										<i class="bx bx-dots-vertical-rounded"></i>
-									</button>
-
-									<div class="dropdown-menu">
-
+						<td>{{ ((currentPage|default(1) - 1) * (perPage|default(10))) + loop.index }}</td>
+						<td>
+							<div class="fw-semibold">{{ ticket.title }}</div>
+						</td>
+						<td>{{ ticket.marchand }}</td>
+						<td style="width: 350px;">{{ ticket.description }}</td>
+						<td>{{ ticket.createdby ? ticket.createdby.nom : '—' }}</td>
+						<td style="width: 450px;">{{ ticket.comment ? ticket.comment|nl2br : '—' }}</td>
+						<td>
+							<span class="badge bg-info">{{ ticket.note }}</span>
+						</td>
+						<td>
+							{% if ticket.enabled %}
+								<span class="badge bg-success">Active</span>
+							{% else %}
+								<span class="badge bg-danger">Inactive</span>
+							{% endif %}
+						</td>
+						<td class="text-end">
+							<div class="dropdown">
+								<button class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+									<i class="bx bx-dots-vertical-rounded"></i>
+								</button>
+								<div class="dropdown-menu">
+									{% if not isTrashView|default(false) %}
 										<a href="{{ path('app_ticket_show', {'id': ticket.id}) }}" class="dropdown-item">
-											<i class="ti ti-eye me-1"></i>
-											Voir
+											<i class="ti ti-eye me-1"></i>Voir
 										</a>
-
+									{% endif %}
+									{% if not isTrashView|default(false) and (is_granted('ROLE_ADMIN') or is_granted('ROLE_MARCHAND')) %}
 										<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="dropdown-item">
-											<i class="ti ti-pencil me-1"></i>
-											Modifier
+											<i class="ti ti-pencil me-1"></i>Modifier
 										</a>
-
 										<form id="delete-ticket-{{ ticket.id }}" method="post" action="{{ path('app_ticket_delete', {'id': ticket.id}) }}" class="d-none">
 											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ ticket.id) }}">
 										</form>
 										<a href="#" class="dropdown-item text-danger" onclick="event.preventDefault(); if (confirm('Voulez-vous vraiment supprimer ce ticket ?')) { document.getElementById('delete-ticket-{{ ticket.id }}').submit(); }">
 											<i class="ti ti-trash me-1"></i>Supprimer
 										</a>
-
-									</div>
-
+									{% elseif isTrashView|default(false) and is_granted('ROLE_ADMIN') %}
+										<form id="restore-ticket-{{ ticket.id }}" method="post" action="{{ path('app_ticket_restore', {'id': ticket.id}) }}" class="d-none">
+											<input type="hidden" name="_token" value="{{ csrf_token('restore' ~ ticket.id) }}">
+										</form>
+										<a href="#" class="dropdown-item text-success" onclick="event.preventDefault(); if (confirm('Voulez-vous restaurer ce ticket ?')) { document.getElementById('restore-ticket-{{ ticket.id }}').submit(); }">
+											<i class="ti ti-rotate-clockwise me-1"></i>Restaurer
+										</a>
+									{% endif %}
 								</div>
-
-							</td>
-
-						</tr>
-
-					{% else %}
-
-						<tr>
-							<td colspan="13" class="text-center text-muted py-4">
-								<i class="bi bi-inbox fs-3 d-block mb-2"></i>
-								Aucun ticket trouvé
-							</td>
-						</tr>
-
-					{% endfor %}
-				</tbody>
-
-			</table>
-		</div>
-
+							</div>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="13" class="text-center text-muted py-4">
+							<i class="bi bi-inbox fs-3 d-block mb-2"></i>
+							Aucun ticket trouvé
+						</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
 	</div>
+
+	{% if not isTrashView|default(false) and totalPages is defined and currentPage is defined and totalPages > 1 %}
+		<nav aria-label="Pagination tickets" class="mt-3 d-flex justify-content-end">
+			<ul class="pagination pagination-sm mb-0">
+				<li class="page-item {% if currentPage == 1 %}disabled{% endif %}">
+					<a class="page-link" href="{% if currentPage > 1 %}{{ path('app_ticket_index', { page: currentPage - 1, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}{% else %}#{% endif %}">&lt;</a>
+				</li>
+				{% for page in 1..totalPages %}
+					<li class="page-item {% if page == currentPage %}active{% endif %}">
+						<a class="page-link" href="{{ path('app_ticket_index', { page: page, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}">{{ page }}</a>
+					</li>
+				{% endfor %}
+				<li class="page-item {% if currentPage == totalPages %}disabled{% endif %}">
+					<a class="page-link" href="{% if currentPage < totalPages %}{{ path('app_ticket_index', { page: currentPage + 1, q: searchQuery|default(''), marchand: selectedMarchand|default(''), user: selectedUser|default(''), date: selectedDate|default(''), year: selectedYear|default(''), month: selectedMonth|default(''), quarter: selectedQuarter|default('') }) }}{% else %}#{% endif %}">&gt;</a>
+				</li>
+			</ul>
+		</nav>
+	{% endif %}
+</div>
 {% endblock %}

@@ -90,7 +90,26 @@ class Ticket
     public function __construct()
     {
         $this->replies   = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
+        $this->enabled   = true;
+        $this->deleted   = false;
+        $this->setCreatedAt(new \DateTimeImmutable());
+    }
+
+    private function syncPeriodFromCreatedAt(): void
+    {
+        if ($this->createdAt === null) {
+            $this->year = null;
+            $this->month = null;
+            $this->quarter = null;
+
+            return;
+        }
+
+        $month = (int) $this->createdAt->format('n');
+
+        $this->year = (int) $this->createdAt->format('Y');
+        $this->month = $month;
+        $this->quarter = (int) floor(($month - 1) / 3) + 1;
     }
 
     public function getId(): ?int
@@ -315,6 +334,7 @@ class Ticket
     public function setCreatedAt(?\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+        $this->syncPeriodFromCreatedAt();
 
         return $this;
     }

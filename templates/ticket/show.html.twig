@@ -124,8 +124,10 @@
 
 					<div class="d-flex justify-content-between mt-3">
 						<div>
+                        	{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MARCHAND') %}
 							<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="btn btn-primary btn-sm me-2">
 								<i class="bi bi-pencil me-1"></i>Modifier
+                                {% endif %}
 							</a>
 						</div>
 					</div>

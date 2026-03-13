@@ -35,10 +35,217 @@ final class TicketController extends AbstractController
     //  LISTE CLASSIQUE
     // ──────────────────────────────────────────────
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(TicketRepository $ticketRepository): Response
+    public function index(TicketRepository $ticketRepository, EntityManagerInterface $em, Request $request): Response
     {
+        /** @var \App\Entity\User|null $currentUser */
+        $currentUser = $this->getUser();
+        $searchQuery = trim((string) $request->query->get('q', ''));
+        $selectedMarchand = trim((string) $request->query->get('marchand', ''));
+        $selectedUser = trim((string) $request->query->get('user', ''));
+        $selectedDate = trim((string) $request->query->get('date', ''));
+        $selectedYear = trim((string) $request->query->get('year', ''));
+        $selectedMonth = trim((string) $request->query->get('month', ''));
+        $selectedQuarter = trim((string) $request->query->get('quarter', ''));
+
+        $qb = $ticketRepository->createQueryBuilder('t')
+            ->leftJoin('t.createdby', 'creator')
+            ->leftJoin('t.user', 'ticketUser')
+            ->addSelect('creator', 'ticketUser')
+            ->andWhere('t.deleted = false')
+            ->orderBy('t.createdAt', 'DESC')
+            ->addOrderBy('t.id', 'DESC');
+
+        if ($searchQuery !== '') {
+            $qb
+                ->andWhere('t.title LIKE :search OR t.description LIKE :search OR t.marchand LIKE :search OR creator.username LIKE :search OR ticketUser.username LIKE :search')
+                ->setParameter('search', '%' . $searchQuery . '%');
+        }
+
+        if ($selectedMarchand !== '') {
+            $qb
+                ->andWhere('creator.id = :marchandId')
+                ->setParameter('marchandId', (int) $selectedMarchand);
+        }
+
+        if ($selectedUser !== '') {
+            $qb
+                ->andWhere('creator.id = :selectedUserId OR ticketUser.id = :selectedUserId')
+                ->setParameter('selectedUserId', (int) $selectedUser);
+        }
+
+        if ($selectedDate !== '') {
+            try {
+                $startOfDay = new \DateTimeImmutable($selectedDate . ' 00:00:00');
+                $endOfDay = $startOfDay->modify('+1 day');
+
+                $qb
+                    ->andWhere('t.createdAt >= :startOfDay')
+                    ->andWhere('t.createdAt < :endOfDay')
+                    ->setParameter('startOfDay', $startOfDay)
+                    ->setParameter('endOfDay', $endOfDay);
+            } catch (\Exception) {
+                $selectedDate = '';
+            }
+        }
+
+        if ($selectedYear !== '') {
+            $qb
+                ->andWhere('t.year = :selectedYear')
+                ->setParameter('selectedYear', (int) $selectedYear);
+        }
+
+        if ($selectedMonth !== '') {
+            $qb
+                ->andWhere('t.month = :selectedMonth')
+                ->setParameter('selectedMonth', (int) $selectedMonth);
+        }
+
+        if ($selectedQuarter !== '') {
+            $qb
+                ->andWhere('t.quarter = :selectedQuarter')
+                ->setParameter('selectedQuarter', (int) $selectedQuarter);
+        }
+
+        if ($currentUser && !$this->isGranted('ROLE_ADMIN') && $this->isGranted('ROLE_MARCHAND')) {
+            $qb
+                ->andWhere('t.createdby = :creator')
+                ->setParameter('creator', $currentUser);
+        }
+
+        $perPage = 10;
+        $currentPage = max(1, $request->query->getInt('page', 1));
+
+        $countQb = clone $qb;
+        $totalItems = (int) $countQb
+            ->select('COUNT(DISTINCT t.id)')
+            ->resetDQLPart('orderBy')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $totalPages = max(1, (int) ceil($totalItems / $perPage));
+        if ($currentPage > $totalPages) {
+            $currentPage = $totalPages;
+        }
+
+        $qb
+            ->setFirstResult(($currentPage - 1) * $perPage)
+            ->setMaxResults($perPage);
+
+        $tickets = $qb->getQuery()->getResult();
+
+        $marchandRole = $em->getRepository(\App\Entity\Role::class)->findOneBy(['nom' => 'ROLE_MARCHAND']);
+        $adminRole = $em->getRepository(\App\Entity\Role::class)->findOneBy(['nom' => 'ROLE_ADMIN']);
+        $marchands = $marchandRole
+            ? $em->getRepository(\App\Entity\User::class)->findBy(['profile' => $marchandRole], ['username' => 'ASC'])
+            : [];
+        $admins = $adminRole
+            ? $em->getRepository(\App\Entity\User::class)->findBy(['profile' => $adminRole], ['username' => 'ASC'])
+            : [];
+
+        $availableYears = $ticketRepository->createQueryBuilder('t')
+            ->select('DISTINCT t.year')
+            ->andWhere('t.deleted = false')
+            ->andWhere('t.year IS NOT NULL')
+            ->orderBy('t.year', 'DESC')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        $monthChoices = [
+            '1' => 'Janvier',
+            '2' => 'Fevrier',
+            '3' => 'Mars',
+            '4' => 'Avril',
+            '5' => 'Mai',
+            '6' => 'Juin',
+            '7' => 'Juillet',
+            '8' => 'Aout',
+            '9' => 'Septembre',
+            '10' => 'Octobre',
+            '11' => 'Novembre',
+            '12' => 'Decembre',
+        ];
+
+        $quarterChoices = [
+            '1' => 'T1',
+            '2' => 'T2',
+            '3' => 'T3',
+            '4' => 'T4',
+        ];
+
+        $selectedMarchandLabel = null;
+        foreach ($marchands as $marchand) {
+            if ((string) $marchand->getId() === $selectedMarchand) {
+                $selectedMarchandLabel = $marchand->getUsername();
+                break;
+            }
+        }
+
+        $selectedUserLabel = null;
+        foreach ($admins as $admin) {
+            if ((string) $admin->getId() === $selectedUser) {
+                $selectedUserLabel = $admin->getUsername();
+                break;
+            }
+        }
+
+        $selectedMonthLabel = $monthChoices[$selectedMonth] ?? null;
+        $selectedQuarterLabel = $quarterChoices[$selectedQuarter] ?? null;
+
         return $this->render('ticket/index.html.twig', [
-            'tickets' => $ticketRepository->findAll(),
+            'tickets' => $tickets,
+            'isTrashView' => false,
+            'marchands' => $marchands,
+            'admins' => $admins,
+            'availableYears' => $availableYears,
+            'monthChoices' => $monthChoices,
+            'quarterChoices' => $quarterChoices,
+            'searchQuery' => $searchQuery,
+            'selectedMarchand' => $selectedMarchand,
+            'selectedMarchandLabel' => $selectedMarchandLabel,
+            'selectedUser' => $selectedUser,
+            'selectedUserLabel' => $selectedUserLabel,
+            'selectedDate' => $selectedDate,
+            'selectedYear' => $selectedYear,
+            'selectedMonth' => $selectedMonth,
+            'selectedMonthLabel' => $selectedMonthLabel,
+            'selectedQuarter' => $selectedQuarter,
+            'selectedQuarterLabel' => $selectedQuarterLabel,
+            'totalItems' => $totalItems,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    #[Route('/deleted', name: 'deleted', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function deleted(TicketRepository $ticketRepository): Response
+    {
+        $deletedTickets = $ticketRepository->findDeletedTickets();
+
+        return $this->render('ticket/index.html.twig', [
+            'tickets' => $deletedTickets,
+            'isTrashView' => true,
+            'marchands' => [],
+            'admins' => [],
+            'availableYears' => [],
+            'monthChoices' => [],
+            'quarterChoices' => [],
+            'searchQuery' => '',
+            'selectedMarchand' => '',
+            'selectedMarchandLabel' => null,
+            'selectedUser' => '',
+            'selectedUserLabel' => null,
+            'selectedDate' => '',
+            'selectedYear' => '',
+            'selectedMonth' => '',
+            'selectedMonthLabel' => null,
+            'selectedQuarter' => '',
+            'selectedQuarterLabel' => null,
+            'totalItems' => count($deletedTickets),
+            'currentPage' => 1,
+            'totalPages' => 1,
+            'perPage' => count($deletedTickets) ?: 10,
         ]);
     }
 
@@ -48,15 +255,39 @@ final class TicketController extends AbstractController
     // ──────────────────────────────────────────────
     #[Route('/chat', name: 'chat', methods: ['GET', 'POST'])]
     #[Route('/chat/{id}', name: 'chat_show', methods: ['GET', 'POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function chat(
         Request $request,
         TicketRepository $ticketRepository,
         EntityManagerInterface $em,
         ?Ticket $ticket = null,
     ): Response {
-        // Toutes les conversations racines
-        $conversations = $ticketRepository->findRootTickets();
+
+        //Pour vérifier que l'utilisateur a le droit d'accéder à cette page (admin ou marchand)
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_MARCHAND')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
+        /** @var \App\Entity\User $currentUser */
+        $currentUser = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        if ($ticket !== null && $ticket->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_chat');
+        }
+
+        // Un marchand ne voit que ses propres conversations
+        $conversations = $isAdmin
+            ? $ticketRepository->findRootTickets()
+            : $ticketRepository->findRootTicketsByCreator($currentUser);
+
+        // Sécurité : un marchand ne peut pas ouvrir le ticket d'un autre utilisateur
+        // On redirige vers le chat (liste vide ou ses tickets) sans message d'erreur brutal
+        if ($ticket !== null && !$isAdmin) {
+            $creator = $ticket->getCreatedby();
+            if (!$creator instanceof \App\Entity\User || !$currentUser instanceof \App\Entity\User || $creator->getId() !== $currentUser->getId()) {
+                return $this->redirectToRoute('app_ticket_chat');
+            }
+        }
 
         // Si aucun ticket sélectionné, prendre le premier disponible (GET uniquement)
         if ($request->isMethod('GET') && $ticket === null && count($conversations) > 0) {
@@ -113,10 +344,21 @@ final class TicketController extends AbstractController
         // Réponses de la conversation sélectionnée
         $replies = $ticket ? $ticketRepository->findRepliesOf($ticket) : [];
 
+        // Prépare les infos pour affichage : nom de l'utilisateur et commentaire
+        $replyInfos = [];
+        foreach ($replies as $r) {
+            $replyInfos[] = [
+                'user' => $r->getUser() ? ($r->getUser()->getUsername() ?? $r->getUser()->getUserIdentifier()) : ($r->getMarchand() ?? 'Admin'),
+                'comment' => $r->getDescription(),
+                'createdAt' => $r->getCreatedAt(),
+            ];
+        }
+
         return $this->render('ticket/chat.html.twig', [
             'conversations' => $conversations,
             'selected'      => $ticket,
             'replies'       => $replies,
+            'replyInfos'    => $replyInfos,
             'newForm'       => $newForm,
         ]);
     }
@@ -127,16 +369,30 @@ final class TicketController extends AbstractController
      */
     public function menuNotifications(TicketRepository $ticketRepository): Response
     {
-        $tickets = $ticketRepository->findRootTickets();
+        /** @var \App\Entity\User|null $currentUser */
+        $currentUser = $this->getUser();
+        $isAdmin = $currentUser && $this->isGranted('ROLE_ADMIN');
+
+        $tickets = $isAdmin || !$currentUser
+            ? $ticketRepository->findRootTickets()
+            : $ticketRepository->findRootTicketsByCreator($currentUser);
+
         // limiter à 6 éléments
         $tickets = array_slice($tickets, 0, 6);
 
         $items = [];
         foreach ($tickets as $t) {
+            $creator = $t->getCreatedby();
+            $role = $creator && $creator->getProfile() ? $creator->getProfile()->getNom() : null;
+            $application = $t->getApplication() ? $t->getApplication()->getName() : ($creator && $creator->getApplication() ? $creator->getApplication()->getName() : null);
+
             $items[] = [
                 'id' => $t->getId(),
                 'title' => $t->getTitle(),
+                'description' => $t->getDescription(),
                 'marchand' => $t->getMarchand(),
+                'role' => $role,
+                'application' => $application,
                 'replies' => count($t->getReplies()),
                 'timeAgo' => $this->formatRelativeTime($t->getCreatedAt()),
             ];
@@ -149,7 +405,14 @@ final class TicketController extends AbstractController
 
     public function menuNotificationsBadge(TicketRepository $ticketRepository): Response
     {
-        $tickets = $ticketRepository->findRootTickets();
+        /** @var \App\Entity\User|null $currentUser */
+        $currentUser = $this->getUser();
+        $isAdmin = $currentUser && $this->isGranted('ROLE_ADMIN');
+
+        $tickets = $isAdmin || !$currentUser
+            ? $ticketRepository->findRootTickets()
+            : $ticketRepository->findRootTicketsByCreator($currentUser);
+
         $session = $this->container->get('request_stack')->getSession();
         $seen = $session->get('seen_replies', []);
 
@@ -158,7 +421,6 @@ final class TicketController extends AbstractController
             $id = $t->getId();
             $currentReplies = count($t->getReplies());
             if (!array_key_exists($id, $seen)) {
-                // never seen → count as unseen
                 $unseen++;
             } else {
                 $seenCount = (int) $seen[$id];
@@ -174,10 +436,22 @@ final class TicketController extends AbstractController
     }
 
     #[Route('/notifications/mark-seen', name: 'notifications_mark_seen', methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function markNotificationsSeen(TicketRepository $ticketRepository): Response
     {
-        $tickets = $ticketRepository->findRootTickets();
+
+        //Pour vérifier que l'utilisateur a le droit d'accéder à cette page (admin ou marchand)
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_MARCHAND')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
+        /** @var \App\Entity\User|null $currentUser */
+        $currentUser = $this->getUser();
+        $isAdmin = $currentUser && $this->isGranted('ROLE_ADMIN');
+
+        $tickets = $isAdmin || !$currentUser
+            ? $ticketRepository->findRootTickets()
+            : $ticketRepository->findRootTicketsByCreator($currentUser);
+
         $map = [];
         foreach ($tickets as $t) {
             $map[$t->getId()] = count($t->getReplies());
@@ -218,14 +492,23 @@ final class TicketController extends AbstractController
     //  RÉPONDRE à un ticket
     // ──────────────────────────────────────────────
     #[Route('/chat/{id}/reply', name: 'chat_reply', methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function reply(
         Request $request,
         Ticket $ticket,
         EntityManagerInterface $em,
     ): Response {
+
+        //Pour vérifier que l'utilisateur a le droit d'accéder à cette page (admin ou marchand)
+        if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_MARCHAND')) {
+            throw $this->createAccessDeniedException('Accès refusé.');
+        }
+
         if (!$this->isCsrfTokenValid('reply' . $ticket->getId(), (string) $request->request->get('_token'))) {
             throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+        }
+
+        if ($ticket->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_chat');
         }
 
         $text = trim((string) $request->request->get('reply_text', ''));
@@ -246,6 +529,7 @@ final class TicketController extends AbstractController
         $reply->setTitle($root->getTitle());
         $reply->setDescription($text !== '' ? $text : 'Fichier joint');
         $reply->setMarchand($this->getUser()?->getUserIdentifier() ?? 'Admin');
+        $reply->setComment($text !== '' ? $text : 'Fichier joint');
         $reply->setParent($root);
         $reply->setEnabled(true);
         $reply->setDeleted(false);
@@ -272,6 +556,17 @@ final class TicketController extends AbstractController
             }
         }
 
+        // Historise les interventions admin/user dans le champ comment du ticket racine.
+        $author = $this->getUser()?->getUserIdentifier() ?? 'Admin';
+        $commentLine = sprintf(
+            '[%s] %s: %s',
+            (new \DateTimeImmutable())->format('d/m/Y H:i'),
+            $author,
+            $text !== '' ? $text : 'Fichier joint'
+        );
+        $existingComment = trim((string) ($root->getComment() ?? ''));
+        $root->setComment($existingComment !== '' ? $existingComment . PHP_EOL . $commentLine : $commentLine);
+
         $em->persist($reply);
         $em->flush();
 
@@ -281,10 +576,10 @@ final class TicketController extends AbstractController
     }
 
     // ──────────────────────────────────────────────
-    //  CRUD existant 
+    //  CRUD existant
     // ──────────────────────────────────────────────
     #[Route('/new', name: 'new', methods: ['GET', 'POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
+    #[IsGranted('ROLE_ADMIN')]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -313,20 +608,44 @@ final class TicketController extends AbstractController
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(Ticket $ticket): Response
     {
+        if ($ticket->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
         return $this->render('ticket/show.html.twig', [
             'ticket' => $ticket,
         ]);
     }
 
     #[Route('/{id}/edit', name: 'edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_MARCHAND')]
     public function edit(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
+        if ($ticket->isDeleted()) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
+        $currentUser = $this->getUser();
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
+
+        // Si marchand, il ne peut éditer que ses propres tickets
+        $creator = $ticket->getCreatedby();
+        if (
+            !$isAdmin &&
+            (
+                !$creator instanceof \App\Entity\User ||
+                !$currentUser instanceof \App\Entity\User ||
+                $creator->getId() !== $currentUser->getId()
+            )
+        ) {
+            return $this->redirectToRoute('app_ticket_index');
+        }
+
         $form = $this->createForm(TicketType::class, $ticket);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
             return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
         }
 
@@ -337,15 +656,32 @@ final class TicketController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $ticket->getId(), $request->request->get('_token'))) {
-            $entityManager->remove($ticket);
+        if (!$ticket->isDeleted() && $this->isCsrfTokenValid('delete' . $ticket->getId(), $request->request->get('_token'))) {
+            $ticket->setDeleted(true);
             $entityManager->flush();
+            $this->addFlash('success', 'Le ticket a été déplacé dans la corbeille.');
         }
 
         return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
     }
+
+    #[Route('/{id}/restore', name: 'restore', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function restore(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
+    {
+        if ($ticket->isDeleted() && $this->isCsrfTokenValid('restore' . $ticket->getId(), (string) $request->request->get('_token'))) {
+            $ticket->setDeleted(false);
+            $entityManager->flush();
+            $this->addFlash('success', 'Le ticket a été restauré.');
+        }
+
+        return $this->redirectToRoute('app_ticket_deleted', [], Response::HTTP_SEE_OTHER);
+    }
+
+
     // fonction pour l'importation de s fichiers
     private function attachUploadedFile(UploadedFile $file, Ticket $ticket): ?string
     {

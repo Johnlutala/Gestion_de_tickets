@@ -50,13 +50,13 @@
 					</li>
 				</ul>
 			</li>
-			<li class="dropdown">
-				<a href="javascript:void(0);" id="notifDropdownToggle" class="dropdown-toggle" title="Notifications" data-toggle="dropdown" role="button">
+			<li class="dropdown notifications-dropdown">
+				<a href="javascript:void(0);" id="notifDropdownToggle" class="dropdown-toggle" title="Notifications" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
 					<i class="zmdi zmdi-notifications"></i>
 					{{ render(controller('App\\Controller\\TicketController::menuNotificationsBadge')) }}
 				</a>
 				<ul class="dropdown-menu slideUp2">
-					<li class="header">Notifications</li>
+					<li class="header">Notifications tickets</li>
 					<li class="body">
 						{{ render(controller('App\\Controller\\TicketController::menuNotifications')) }}
 					</li>
@@ -79,18 +79,28 @@
 									{{ (app.user.username|default(app.user.userIdentifier))|first|upper }}
 								</div>
 								<div>
-									<div><strong>{{ app.user.username|default(app.user.userIdentifier) }}</strong></div>
-									<div class="small text-muted">{{ app.user.nom|default('') }} {{ app.user.prenom|default('') }}</div>
+									<div>
+										<strong>{{ app.user.username|default(app.user.userIdentifier) }}</strong>
+									</div>
+									<div class="small text-muted">{{ app.user.nom|default('') }}
+										{{ app.user.prenom|default('') }}</div>
 								</div>
 							</div>
 							<hr class="my-2">
-                            <div class="p-4">
-							<div class="small mb-1"><i class="zmdi zmdi-shield-security me-1"></i><strong>Rôle :</strong> {{ app.user.profile ? app.user.profile.nom : '—' }}</div>
-							 <div class="small mb-3"><i class="zmdi zmdi-apps me-1"></i><strong>Application :</strong> {{ app.user.application ? app.user.application.name|default('—') : '—' }}</div>
-							 </div>
-                            <div class="d-grid gap-1 p-5">
+							<div class="p-4">
+								<div class="small mb-1">
+									<i class="zmdi zmdi-shield-security me-1"></i>
+									<strong>Rôle :</strong>
+									{{ app.user.profile ? app.user.profile.nom : '—' }}</div>
+								<div class="small mb-3">
+									<i class="zmdi zmdi-apps me-1"></i>
+									<strong>Application :</strong>
+									{{ app.user.application ? app.user.application.name|default('—') : '—' }}</div>
+							</div>
+							<div class="d-grid gap-1 p-5">
 								<a href="#" class="btn btn-sm btn-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-									<i class="zmdi zmdi-power me-1"></i> Déconnexion
+									<i class="zmdi zmdi-power me-1"></i>
+									Déconnexion
 								</a>
 								<form id="logout-form" action="{{ path('app_logout') }}" method="post" style="display:none;"></form>
 							</div>
@@ -126,12 +136,6 @@
 						<i class="zmdi zmdi-assignment"></i>
 						<span>Tickets</span>
 					</a>
-					<ul class="ml-menu">
-						<li>
-							<a href="project-list.html">Voir les tickets</a>
-						</li>
-
-					</ul>
 				</li>
 				<li>
 					<a href="{{ path('app_application_index') }}" class="menu">
@@ -141,72 +145,81 @@
 				</li>
 
 				<li>
-					<a href="javascript:void(0);" class="menu-toggle">
-						<i class="zmdi zmdi-folder"></i>
-						<span>Admin</span>
-					</a>
-					<ul class="ml-menu">
-						<li>
-							<a href="{{ path('app_user_index') }}">Users</a>
-						</li>
-						<li>
-							<a href="{{ path('app_role_index') }}">Roles</a>
-						</li>
-						<li>
-							<a href="{{ path('app_privilege_index') }}">Privileges</a>
-						</li>
+					{% if is_granted('ROLE_ADMIN') %}
+						<a href="javascript:void(0);" class="menu-toggle">
+							<i class="zmdi zmdi-folder"></i>
+							<span>Admin</span>
+						</a>
 
-					</ul>
-				</li>
+						<ul class="ml-menu">
+							<li>
+								<a href="{{ path('app_user_index') }}">Users</a>
+							</li>
+							<li>
+								<a href="{{ path('app_role_index') }}">Roles</a>
+							</li>
+							<li>
+								<a href="{{ path('app_privilege_index') }}">Privileges</a>
+							</li>
+
+						</ul>
+					</li>
+				{% endif %}
 
 			</ul>
 		</div>
 	</aside>
 
 
-
-
 	<!-- Main Content -->
 	<section class="content">
 		<div class="">
 			<div class="block-header">
-				 <div class="row">
-                <div class="col-lg-7 col-md-6 col-sm-12">
-                    <h2>Dashboard</h2>
-                    <ul class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ path('app_home_index') }}">
-                        <i class="zmdi zmdi-home"></i>Menu</a></li>
-                        <li class="breadcrumb-item active">Gestion de Ticket</li>
-                    </ul>
-                    <button class="btn btn-primary btn-icon mobile_menu" type="button"><i class="zmdi zmdi-sort-amount-desc"></i></button>
-                </div>
-                <div class="col-lg-5 col-md-6 col-sm-12">
-                    <button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button"><i class="zmdi zmdi-arrow-right"></i></button>
-                </div>
-            </div>
+				<div class="row">
+					<div class="col-lg-7 col-md-6 col-sm-12">
+						<h2>Dashboard</h2>
+						<ul class="breadcrumb">
+							<li class="breadcrumb-item">
+								<a href="{{ path('app_home_index') }}">
+									<i class="zmdi zmdi-home"></i>Menu</a>
+							</li>
+							<li class="breadcrumb-item active">Gestion de Ticket</li>
+						</ul>
+						<button class="btn btn-primary btn-icon mobile_menu" type="button">
+							<i class="zmdi zmdi-sort-amount-desc"></i>
+						</button>
+					</div>
+					<div class="col-lg-5 col-md-6 col-sm-12">
+						<button class="btn btn-primary btn-icon float-right right_icon_toggle_btn" type="button">
+							<i class="zmdi zmdi-arrow-right"></i>
+						</button>
+					</div>
+				</div>
 			</div>
 
 		</div>
 
-        {% for label, messages in app.flashes %}
-						{% for message in messages %}
-					<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert" id="auto-alert-{{ label }}">
-						<i class="bi bi-{{ label == 'error' ? 'exclamation-triangle' : (label == 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>
-						{{ message }}
-						<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-					</div>
-					<script>
-						setTimeout(function() {
-							var alert = document.getElementById('auto-alert-{{ label }}');
-							if (alert) {
-								alert.classList.remove('show');
-								alert.classList.add('fade');
-								setTimeout(function() { alert.remove(); }, 500);
-							}
-						}, 5000);
-					</script>
-						{% endfor %}
-					{% endfor %}
+		{% for label, messages in app.flashes %}
+			{% for message in messages %}
+				<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert" id="auto-alert-{{ label }}">
+					<i class="bi bi-{{ label == 'error' ? 'exclamation-triangle' : (label == 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>
+					{{ message }}
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+				<script>
+					setTimeout(function () {
+var alert = document.getElementById('auto-alert- {{ label }}');
+if (alert) {
+alert.classList.remove('show');
+alert.classList.add('fade');
+setTimeout(function () {
+alert.remove();
+}, 500);
+}
+}, 5000);
+				</script>
+			{% endfor %}
+		{% endfor %}
 
 	</section>
 
@@ -215,8 +228,9 @@
 // Quand la dropdown Notifications s'ouvre, prévenir le serveur que l'utilisateur consulte
 document.addEventListener('DOMContentLoaded', function () {
 var btn = document.getElementById('notifDropdownToggle');
-if (! btn)
+if (! btn) 
 return;
+
 
 // Bootstrap dropdown uses show.bs.dropdown; fallback to click
 btn.addEventListener('click', function () {
@@ -230,25 +244,23 @@ headers: {
 } catch (e) { // silent
 }
 });
-});</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-	var profileBtn = document.getElementById('profileToggleBtn');
-	var profileDetails = document.getElementById('profile-details');
-	var profileLogout = document.getElementById('profileLogoutBtn');
+});</script><script>
+document.addEventListener('DOMContentLoaded', function () {
+var profileBtn = document.getElementById('profileToggleBtn');
+var profileDetails = document.getElementById('profile-details');
+var profileLogout = document.getElementById('profileLogoutBtn');
 
-	if (profileBtn && profileDetails) {
-		profileBtn.addEventListener('click', function (e) {
-			e.preventDefault();
-			profileDetails.classList.toggle('d-none');
-		});
-	}
-
-	if (profileLogout && document.getElementById('logout-form')) {
-		profileLogout.addEventListener('click', function (e) {
-			e.preventDefault();
-			document.getElementById('logout-form').submit();
-		});
-	}
+if (profileBtn && profileDetails) {
+profileBtn.addEventListener('click', function (e) {
+e.preventDefault();
+profileDetails.classList.toggle('d-none');
 });
-</script>
+}
+
+if (profileLogout && document.getElementById('logout-form')) {
+profileLogout.addEventListener('click', function (e) {
+e.preventDefault();
+document.getElementById('logout-form').submit();
+});
+}
+});</script>
