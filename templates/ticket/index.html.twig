@@ -71,38 +71,38 @@
 					</div>
 
 					{# <div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Annee</label>
-						<select name="year" id="ticket-year-select" class="form-select form-select-sm">
-							<option value="">Toutes les annees</option>
-							{% for year in availableYears|default([]) %}
-								<option value="{{ year }}" {{ selectedYear == year ? 'selected' : '' }}>{{ year }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Mois</label>
-						<select name="month" id="ticket-month-select" class="form-select form-select-sm">
-							<option value="">Tous les mois</option>
-							{% for monthValue, monthLabel in monthChoices|default([]) %}
-								<option value="{{ monthValue }}" {{ selectedMonth == monthValue ? 'selected' : '' }}>{{ monthLabel }}</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Trimestre</label>
-						<select name="quarter" id="ticket-quarter-select" class="form-select form-select-sm">
-							<option value="">Tous les trimestres</option>
-							{% for quarterValue, quarterLabel in quarterChoices|default([]) %}
-								<option value="{{ quarterValue }}" {{ selectedQuarter == quarterValue ? 'selected' : '' }}>{{ quarterLabel }}</option>
-							{% endfor %}
-						</select>
-					</div> #}
+																															<label class="form-label text-uppercase small text-muted mb-1">Annee</label>
+																															<select name="year" id="ticket-year-select" class="form-select form-select-sm">
+																																<option value="">Toutes les annees</option>
+																																{% for year in availableYears|default([]) %}
+																																	<option value="{{ year }}" {{ selectedYear == year ? 'selected' : '' }}>{{ year }}</option>
+																																{% endfor %}
+																															</select>
+																														</div>
+																														<div class="col-sm-6 col-lg-4">
+																															<label class="form-label text-uppercase small text-muted mb-1">Mois</label>
+																															<select name="month" id="ticket-month-select" class="form-select form-select-sm">
+																																<option value="">Tous les mois</option>
+																																{% for monthValue, monthLabel in monthChoices|default([]) %}
+																																	<option value="{{ monthValue }}" {{ selectedMonth == monthValue ? 'selected' : '' }}>{{ monthLabel }}</option>
+																																{% endfor %}
+																															</select>
+																														</div>
+																														<div class="col-sm-6 col-lg-4">
+																															<label class="form-label text-uppercase small text-muted mb-1">Trimestre</label>
+																															<select name="quarter" id="ticket-quarter-select" class="form-select form-select-sm">
+																																<option value="">Tous les trimestres</option>
+																																{% for quarterValue, quarterLabel in quarterChoices|default([]) %}
+																																	<option value="{{ quarterValue }}" {{ selectedQuarter == quarterValue ? 'selected' : '' }}>{{ quarterLabel }}</option>
+																																{% endfor %}
+																															</select>
+																														</div> #}
 
-					<div class="col-sm-6 col-lg-2 align-self-end">
-						<button type="submit" class="btn btn-outline-primary btn-sm w-100 ticket-filter-submit">
-							<i class="bi bi-filter me-1"></i>Filtrer
-						</button>
-					</div>
+					{# <div class="col-sm-6 col-lg-2 align-self-end">
+																															<button type="submit" class="btn btn-outline-primary btn-sm w-100 ticket-filter-submit">
+																																<i class="bi bi-filter me-1"></i>Filtrer
+																															</button>
+																														</div> #}
 				</form>
 			{% endif %}
 
@@ -192,7 +192,7 @@
 					<th class="ticket-col-owner">Intervenu(Admin)</th>
 					<th class="ticket-col-comment">Commentaire</th>
 					<th class="ticket-col-note">Note</th>
-					<th class="ticket-col-status">Actif</th>
+					<th class="ticket-col-status">Etat</th>
 					<th class="text-end ticket-col-actions">Actions</th>
 				</tr>
 			</thead>
@@ -208,14 +208,23 @@
 						<td class="ticket-col-description">{{ ticket.description }}</td>
 						<td>{{ ticket.createdby ? ticket.createdby.nom : '—' }}</td>
 						<td class="ticket-col-comment">{{ ticket.comment ? ticket.comment|nl2br : '—' }}</td>
+
 						<td>
-							<span class="badge bg-info">{{ ticket.note ? ticket.note : 'true' }}</span>
+							<span class="badge bg-info">
+								{% if ticket.note == 0 %}
+										Non
+								{% elseif ticket.note > 0 %}
+									{{ ticket.note }}
+								{% else %}
+								Oui
+								{% endif %}
+							</span>
 						</td>
 						<td>
 							{% if ticket.enabled %}
-								<span class="badge bg-success">Active</span>
+								<span class="badge bg-success">Encours</span>
 							{% else %}
-								<span class="badge bg-danger">Inactive</span>
+								<span class="badge bg-danger">Clôturé</span>
 							{% endif %}
 						</td>
 						<td class="text-end">
@@ -284,13 +293,10 @@
 					</li>
 				{% endfor %}
 				<li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
-						<li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
 					<a class="page-link" href="{{ currentPage < totalPages ? path('app_ticket_index', paginationParams|merge({ page: currentPage + 1 })) : '#' }}">&gt;</a>
 				</li>
 			</ul>
 		</nav>
 	{% endif %}
-	</div>
+</div>
 {% endblock %}
-
-

@@ -5,8 +5,8 @@
 	<div class="page-loader-wrapper">
 		<div class="loader">
 			<div class="m-t-30">
-            <img class="zmdi-hc-spin" src="assets/images/loader.svg" width="48" height="48" alt="Aero">
-            </div>
+				<img class="zmdi-hc-spin" src="assets/images/loader.svg" width="48" height="48" alt="Aero">
+			</div>
 			<p>Please wait...</p>
 		</div>
 	</div>
@@ -210,7 +210,7 @@
 				</div>
 				<script>
 					setTimeout(function () {
-var alert = document.getElementById('auto-alert- {{ label }}');
+var alert = document.getElementById('auto-alert-  {{ label }}');
 if (alert) {
 alert.classList.remove('show');
 alert.classList.add('fade');
@@ -230,8 +230,9 @@ alert.remove();
 // Quand la dropdown Notifications s'ouvre, prévenir le serveur que l'utilisateur consulte
 document.addEventListener('DOMContentLoaded', function () {
 var btn = document.getElementById('notifDropdownToggle');
-if (! btn)
+if (! btn) 
 return;
+
 
 
 // Bootstrap dropdown uses show.bs.dropdown; fallback to click

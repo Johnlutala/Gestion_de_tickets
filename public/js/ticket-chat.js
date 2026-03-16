@@ -1,4 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const autoDismissMessages = [
+        'Ticket créé avec succès',
+        'Le ticket a été déplacé dans la corbeille.',
+    ];
+
+    document.querySelectorAll('.alert.alert-success').forEach((alert) => {
+        const message = alert.textContent ? alert.textContent.trim() : '';
+        const shouldDismiss = autoDismissMessages.some((expectedMessage) => message.includes(expectedMessage));
+
+        if (!shouldDismiss) {
+            return;
+        }
+
+        window.setTimeout(() => {
+            alert.classList.remove('show');
+            window.setTimeout(() => {
+                alert.remove();
+            }, 500);
+        }, 10000);
+    });
+
     const chatWrapper = document.getElementById('chatWrapper');
     if (!chatWrapper) {
         return;
@@ -110,6 +131,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.js-close-evaluation').forEach((button) => {
         button.addEventListener('click', closeEvaluationPanel);
+    });
+
+    document.querySelectorAll('.js-submit-form-link').forEach((link) => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            if (link.classList.contains('disabled') || link.getAttribute('aria-disabled') === 'true') {
+                return;
+            }
+
+            const formId = link.dataset.formId;
+            const confirmMessage = link.dataset.confirmMessage;
+            const targetForm = formId ? document.getElementById(formId) : null;
+            if (!targetForm) {
+                return;
+            }
+
+            if (confirmMessage && !window.confirm(confirmMessage)) {
+                return;
+            }
+
+            targetForm.submit();
+        });
     });
 
     document.querySelectorAll('form[data-confirm-message]').forEach((form) => {

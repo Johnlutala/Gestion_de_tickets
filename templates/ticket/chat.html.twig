@@ -19,8 +19,8 @@
 		<div
 			class="chat-wrapper" id="chatWrapper" data-has-selected="{{ selected is not null ? 'true' : 'false' }}">
 			{# ══════════════════════════════════════
-																																																	PANEL GAUCHE — Liste des conversations
-																																																  ══════════════════════════════════════ #}
+																																																																			PANEL GAUCHE — Liste des conversations
+																																																																		  ══════════════════════════════════════ #}
 			<div class="chat-sidebar" id="chatSidebar">
 				<div class="chat-sidebar-header">
 					<h5>
@@ -84,20 +84,21 @@
 											<i class="bi bi-star-fill me-1"></i>
 											{{ isConvEvaluated ? 'Déjà évalué' : 'Évaluer' }}
 										</button>
-										<form method="post" action="{{ path('app_ticket_close', {id: conv.id}) }}" data-confirm-message="Voulez-vous clôturer ce ticket ?">
+										<form id="close-ticket-chat-{{ conv.id }}" method="post" action="{{ path('app_ticket_close', {id: conv.id}) }}" class="d-none">
 											<input type="hidden" name="_token" value="{{ csrf_token('close' ~ conv.id) }}">
-											<button type="submit" class="btn btn-sm btn-outline-secondary chat-ticket-action-btn" {% if not isConvEvaluated or not conv.enabled %} disabled {% endif %}>
-												<i class="bi bi-check2-circle me-1"></i>
-												{{ conv.enabled ? 'Clôturer' : 'Clôturé' }}
-											</button>
+											<input type="hidden" name="redirect_to" value="chat">
 										</form>
-										<form method="post" action="{{ path('app_ticket_delete', {id: conv.id}) }}" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
+										<a href="#" class="btn btn-sm btn-outline-secondary chat-ticket-action-btn js-submit-form-link {{ not isConvEvaluated or not conv.enabled ? 'disabled' : '' }}" data-form-id="close-ticket-chat-{{ conv.id }}" data-confirm-message="Voulez-vous clôturer ce ticket ?">
+											<i class="bi bi-check2-circle me-1"></i>
+											{{ conv.enabled ? 'Clôturer' : 'Clôturé' }}
+										</a>
+										<form id="delete-ticket-chat-{{ conv.id }}" method="post" action="{{ path('app_ticket_delete', {id: conv.id}) }}" class="d-none">
 											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ conv.id) }}">
 											<input type="hidden" name="redirect_to" value="chat">
-											<button type="submit" class="btn btn-sm btn-outline-danger chat-ticket-action-btn">
-												<i class="bi bi-trash3-fill me-1"></i>Supprimer
-											</button>
 										</form>
+										<a href="#" class="btn btn-sm btn-outline-danger chat-ticket-action-btn js-submit-form-link" data-form-id="delete-ticket-chat-{{ conv.id }}" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
+											<i class="bi bi-trash3-fill me-1"></i>Supprimer
+										</a>
 										{% if not isConvEvaluated and conv.enabled %}
 											<span class="chat-ticket-hint">Évaluer avant clôture</span>
 										{% endif %}
@@ -110,8 +111,8 @@
 			</div>
 
 			{# ══════════════════════════════════════
-																																																																	       PANEL DROIT — Conversation
-																																																																	       ══════════════════════════════════════ #}
+																																																																																			       PANEL DROIT — Conversation
+																																																																																			       ══════════════════════════════════════ #}
 			<div class="chat-main" id="chatMain">
 				{% if selected is null %}
 					<div class="chat-empty">
@@ -233,7 +234,7 @@
 
 							{% if not canReply %}
 								<div class="chat-readonly-notice">
-									<i class="bi bi-lock-fill"></i>
+									<i class="bi bi-lock-fill" style="margin-right: 30%;"></i>
 									<span>Ce ticket est deja cloturé.</span>
 								</div>
 							{% else %}
@@ -250,6 +251,34 @@
 										<i class="bi bi-send-fill"></i>
 									</button>
 								</form>
+							{% endif %}
+
+							{% if canManageSelected %}
+								<div class="chat-ticket-actions mt-3">
+									{% if not isClosed %}
+										<button type="button" class="btn btn-sm btn-outline-success chat-ticket-action-btn js-open-evaluation" {% if isEvaluated %} disabled {% endif %}>
+											<i class="bi bi-star-fill me-1"></i>
+											{{ isEvaluated ? 'Déjà évalué' : 'Évaluer' }}
+										</button>
+									{% endif %}
+									<form method="post" action="{{ path('app_ticket_close', {id: selected.id}) }}" id="selected-ticket-close-form" class="d-none">
+										<input type="hidden" name="_token" value="{{ csrf_token('close' ~ selected.id) }}">
+										<input type="hidden" name="redirect_to" value="chat">
+									</form>
+									<a href="#" class="btn btn-sm btn-outline-secondary chat-ticket-action-btn js-submit-form-link {{ not isEvaluated or isClosed ? 'disabled' : '' }}" data-form-id="selected-ticket-close-form" data-confirm-message="Voulez-vous clôturer ce ticket ?">
+										<i class="bi bi-check2-circle me-1"></i>
+										{{ isClosed ? 'Clôturé' : 'Clôturer' }}
+									</a>
+
+
+									<form method="post" action="{{ path('app_ticket_delete', {id: selected.id}) }}" id="selected-ticket-delete-form" class="d-none">
+										<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ selected.id) }}">
+										<input type="hidden" name="redirect_to" value="chat">
+									</form>
+									<a href="#" class="btn btn-sm btn-outline-danger chat-ticket-action-btn js-submit-form-link" data-form-id="selected-ticket-delete-form" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
+										<i class="bi bi-trash3-fill me-1"></i>Supprimer
+									</a>
+								</div>
 							{% endif %}
 						</div>
 
@@ -298,7 +327,8 @@
 				{% endif %}
 			</div>
 
-			{# ══════════════════════════════════════ — Créer un nouveau ticket																																																						   ══════════════════════════════════════ #}
+			{# ══════════════════════════════════════
+																		            — Créer un nouveau ticket																																																						   ══════════════════════════════════════ #}
 			<div class="modal fade" id="modalNewTicket" tabindex="-1">
 				<div class="modal-dialog modal-dialog-centered">
 					<div class="modal-content">

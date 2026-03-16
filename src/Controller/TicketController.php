@@ -19,9 +19,16 @@ final class TicketController extends AbstractController
     private const CHAT_UPLOAD_DIR = 'uploads/tickets';
     private const MAX_UPLOAD_SIZE = 10485760;
     private const ALLOWED_MIME_TYPES = [
-        'image/jpeg', 'image/png','image/gif','image/webp','application/pdf',
-        'text/plain','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'application/pdf',
+        'text/plain',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     ];
 
     // ──────────────────────────────────────────────
@@ -626,10 +633,21 @@ final class TicketController extends AbstractController
     #[Route('/{id}/close', name: 'close', methods: ['POST'])]
     public function close(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
+        
         $root = $this->resolveRootTicket($ticket);
 
+        $redirectTo = (string) $request->request->get('redirect_to', 'chat');
+
         if (!$this->isCsrfTokenValid('close' . $root->getId(), (string) $request->request->get('_token'))) {
-            throw $this->createAccessDeniedException('Jeton CSRF invalide.');
+            $this->addFlash('error', 'Jeton CSRF invalide pour la clôture du ticket.');
+
+            if ($redirectTo === 'chat') {
+                return $this->redirectToRoute('app_ticket_chat_show', [
+                    'id' => $root->getId(),
+                ], Response::HTTP_SEE_OTHER);
+            }
+
+            return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
         }
 
         if (!$this->isMerchantOwner($root)) {
@@ -661,6 +679,12 @@ final class TicketController extends AbstractController
         $entityManager->flush();
 
         $this->addFlash('success', 'Le ticket a été clôturé.');
+
+        if ($redirectTo === 'chat') {
+            return $this->redirectToRoute('app_ticket_chat_show', [
+                'id' => $root->getId(),
+            ], Response::HTTP_SEE_OTHER);
+        }
 
         return $this->redirectToRoute('app_ticket_chat_show', [
             'id' => $root->getId(),
@@ -753,13 +777,28 @@ final class TicketController extends AbstractController
     #[Route('/{id}', name: 'delete', methods: ['POST'])]
     public function delete(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
+
         $root = $this->resolveRootTicket($ticket);
+
+        $redirectTo = (string) $request->request->get('redirect_to', 'index');
+
+        if (!$this->isCsrfTokenValid('delete' . $root->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide pour la suppression du ticket.');
+
+            if ($redirectTo === 'chat') {
+                return $this->redirectToRoute('app_ticket_chat_show', [
+                    'id' => $root->getId(),
+                ], Response::HTTP_SEE_OTHER);
+            }
+
+            return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
+        }
 
         if (!$this->canManageTicket($root)) {
             throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer ce ticket.');
         }
 
-        if (!$root->isDeleted() && $this->isCsrfTokenValid('delete' . $root->getId(), (string) $request->request->get('_token'))) {
+        if (!$root->isDeleted()) {
             $root->setDeleted(true);
             foreach ($root->getReplies() as $reply) {
                 $reply->setDeleted(true);
@@ -768,7 +807,6 @@ final class TicketController extends AbstractController
             $this->addFlash('success', 'Le ticket a été déplacé dans la corbeille.');
         }
 
-        $redirectTo = (string) $request->request->get('redirect_to', 'index');
         if ($redirectTo === 'chat') {
             return $this->redirectToRoute('app_ticket_chat', [], Response::HTTP_SEE_OTHER);
         }
