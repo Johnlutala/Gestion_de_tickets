@@ -20,37 +20,7 @@
 				<a href="javascript:void(0);" class="dropdown-toggle" title="App" data-toggle="dropdown" role="button">
 					<i class="zmdi zmdi-apps"></i>
 				</a>
-				<ul class="dropdown-menu slideUp2">
-					<li class="header">Application</li>
-					<li class="body">
-						<ul class="menu app_sortcut list-unstyled">
-							<li>
-								<a href="image-gallery.html">
-									<div class="icon-circle mb-2 bg-blue">
-										<i class="zmdi zmdi-camera"></i>
-									</div>
-									<p class="mb-0">FlexPaie</p>
-								</a>
-							</li>
-							<li>
-								<a href="javascript:void(0);">
-									<div class="icon-circle mb-2 bg-amber">
-										<i class="zmdi zmdi-translate"></i>
-									</div>
-									<p class="mb-0">FlexRoll</p>
-								</a>
-							</li>
-							<li>
-								<a href="contact.html">
-									<div class="icon-circle mb-2 bg-purple">
-										<i class="zmdi zmdi-account-calendar"></i>
-									</div>
-									<p class="mb-0">Nous Contacter</p>
-								</a>
-							</li>
-						</ul>
-					</li>
-				</ul>
+
 			</li>
 			<li class="dropdown notifications-dropdown">
 				<a href="javascript:void(0);" id="notifDropdownToggle" class="dropdown-toggle" title="Notifications" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
@@ -89,16 +59,6 @@
 								</div>
 							</div>
 							<hr class="my-2">
-							<div class="p-4">
-								<div class="small mb-1">
-									<i class="zmdi zmdi-shield-security me-1"></i>
-									<strong>Rôle :</strong>
-									{{ app.user.profile ? app.user.profile.nom : '—' }}</div>
-								<div class="small mb-3">
-									<i class="zmdi zmdi-apps me-1"></i>
-									<strong>Application :</strong>
-									{{ app.user.application ? app.user.application.name|default('—') : '—' }}</div>
-							</div>
 							<div class="d-grid gap-1 p-5">
 								<a href="#" class="btn btn-sm btn-danger" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
 									<i class="zmdi zmdi-power me-1"></i>
@@ -230,7 +190,7 @@ alert.remove();
 // Quand la dropdown Notifications s'ouvre, prévenir le serveur que l'utilisateur consulte
 document.addEventListener('DOMContentLoaded', function () {
 var btn = document.getElementById('notifDropdownToggle');
-if (! btn) 
+if (! btn)
 return;
 
 
