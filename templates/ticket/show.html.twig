@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}
-	-Détails Ticket
+	-Détails 
 {% endblock %}
 
 {% block body %}
@@ -76,9 +76,9 @@
 
 							<tr>
 								<th class="bg-light">
-									<i class="bi bi-chat-left-text text-primary me-2"></i>Commentaire
+									<i class="bi bi-chat-left-text text-primary me-2"></i>Historique
 								</th>
-								<td>{{ ticket.comment|default('—') }}</td>
+								<td>{{ commentHistory|default('—')|nl2br }}</td>
 							</tr>
 
 							<tr>
@@ -106,16 +106,16 @@
 									{% endif %}
 								</td>
 							</tr>
-						
+
 						</tbody>
 					</table>
 
 					<div class="d-flex justify-content-between mt-3">
 						<div>
-                        	{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MARCHAND') %}
-							<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="btn btn-primary btn-sm me-2">
-								<i class="bi bi-pencil me-1"></i>Modifier
-                                {% endif %}
+							{% if is_granted('ROLE_ADMIN') or is_granted('ROLE_MARCHAND') %}
+								<a href="{{ path('app_ticket_edit', {'id': ticket.id}) }}" class="btn btn-primary btn-sm me-2">
+									<i class="bi bi-pencil me-1"></i>Modifier
+								{% endif %}
 							</a>
 						</div>
 					</div>

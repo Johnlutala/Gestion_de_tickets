@@ -100,6 +100,7 @@ class TicketRepository extends ServiceEntityRepository
     public function findDeletedTickets(): array
     {
         return $this->createDeletedQueryBuilder('t')
+            ->andWhere('t.parent IS NULL')
             ->orderBy('t.createdAt', 'DESC')
             ->getQuery()
             ->getResult();

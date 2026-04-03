@@ -1,5 +1,13 @@
 .ticket-index-page {
-    margin-right: 20px;
+    --ticket-page-max-width: none;
+    --ticket-page-margin-top: 0;
+    --ticket-page-margin-right: 10px;
+    --ticket-page-margin-bottom: 0;
+    --ticket-page-margin-left: 0;
+    max-width: var(--ticket-page-max-width);
+    margin: var(--ticket-page-margin-top) var(--ticket-page-margin-right) var(--ticket-page-margin-bottom) var(--ticket-page-margin-left);
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .ticket-filter-submit {
@@ -11,7 +19,11 @@
 }
 
 .ticket-table-responsive {
-    padding-bottom: 20px;
+    padding-bottom: 5px;
+}
+
+.ticket-index-page .table {
+    table-layout: fixed;
 }
 
 .ticket-col-id {
@@ -19,7 +31,7 @@
 }
 
 .ticket-col-title {
-    width: 200px;
+    width: 20px;
 }
 
 .ticket-col-merchant,
@@ -29,14 +41,28 @@
 }
 
 .ticket-col-description {
-    width: 350px;
+    width: 150px;
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .ticket-col-comment {
-    width: 450px;
+    width: 150px;
+    max-width: 350px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .ticket-col-note,
 .ticket-col-status {
     width: 50px;
+}
+
+.ticket-table-responsive td.ticket-col-description,
+.ticket-table-responsive td.ticket-col-comment {
+    vertical-align: top;
+    line-height: 1.4;
 }

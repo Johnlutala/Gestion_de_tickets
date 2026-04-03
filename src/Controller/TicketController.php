@@ -52,6 +52,7 @@ final class TicketController extends AbstractController
             ->leftJoin('t.user', 'ticketUser')
             ->addSelect('creator', 'ticketUser')
             ->andWhere('t.deleted = false')
+            ->andWhere('t.parent IS NULL')
             ->orderBy('t.createdAt', 'DESC')
             ->addOrderBy('t.id', 'DESC');
 
@@ -68,8 +69,17 @@ final class TicketController extends AbstractController
         }
 
         if ($selectedUser !== '') {
+            $replyMatchQb = $em->createQueryBuilder()
+                ->select('1')
+                ->from(Ticket::class, 'replyTicket')
+                ->leftJoin('replyTicket.createdby', 'replyCreator')
+                ->leftJoin('replyTicket.user', 'replyUser')
+                ->where('replyTicket.parent = t')
+                ->andWhere('replyTicket.deleted = false')
+                ->andWhere('(replyCreator.id = :selectedUserId OR replyUser.id = :selectedUserId)');
+
             $qb
-                ->andWhere('creator.id = :selectedUserId OR ticketUser.id = :selectedUserId')
+                ->andWhere('(creator.id = :selectedUserId OR ticketUser.id = :selectedUserId OR EXISTS(' . $replyMatchQb->getDQL() . '))')
                 ->setParameter('selectedUserId', (int) $selectedUser);
         }
 
@@ -132,6 +142,13 @@ final class TicketController extends AbstractController
             ->setMaxResults($perPage);
 
         $tickets = $qb->getQuery()->getResult();
+        $commentHistories = [];
+        foreach ($tickets as $ticket) {
+            $commentHistories[$ticket->getId()] = $this->buildConversationHistory(
+                $ticket,
+                $ticketRepository->findRepliesOf($ticket)
+            );
+        }
 
         $marchandRole = $em->getRepository(\App\Entity\Role::class)->findOneBy(['nom' => 'ROLE_MARCHAND']);
         $adminRole = $em->getRepository(\App\Entity\Role::class)->findOneBy(['nom' => 'ROLE_ADMIN']);
@@ -193,6 +210,7 @@ final class TicketController extends AbstractController
 
         return $this->render('ticket/index.html.twig', [
             'tickets' => $tickets,
+            'commentHistories' => $commentHistories,
             'isTrashView' => false,
             'marchands' => $marchands,
             'admins' => $admins,
@@ -222,9 +240,14 @@ final class TicketController extends AbstractController
     public function deleted(TicketRepository $ticketRepository): Response
     {
         $deletedTickets = $ticketRepository->findDeletedTickets();
+        $commentHistories = [];
+        foreach ($deletedTickets as $ticket) {
+            $commentHistories[$ticket->getId()] = $this->buildConversationHistory($ticket);
+        }
 
         return $this->render('ticket/index.html.twig', [
             'tickets' => $deletedTickets,
+            'commentHistories' => $commentHistories,
             'isTrashView' => true,
             'marchands' => [],
             'admins' => [],
@@ -567,17 +590,6 @@ final class TicketController extends AbstractController
             }
         }
 
-        // Historise les interventions admin/user dans le champ comment du ticket racine.
-        $author = $this->getUser()?->getUserIdentifier() ?? 'Admin';
-        $commentLine = sprintf(
-            '[%s] %s: %s',
-            (new \DateTimeImmutable())->format('d/m/Y H:i'),
-            $author,
-            $text !== '' ? $text : 'Fichier joint'
-        );
-        $existingComment = trim((string) ($root->getComment() ?? ''));
-        $root->setComment($existingComment !== '' ? $existingComment . PHP_EOL . $commentLine : $commentLine);
-
         $em->persist($reply);
         $em->flush();
 
@@ -633,7 +645,7 @@ final class TicketController extends AbstractController
     #[Route('/{id}/close', name: 'close', methods: ['POST'])]
     public function close(Request $request, Ticket $ticket, EntityManagerInterface $entityManager): Response
     {
-        
+
         $root = $this->resolveRootTicket($ticket);
 
         $redirectTo = (string) $request->request->get('redirect_to', 'chat');
@@ -722,14 +734,20 @@ final class TicketController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
-    public function show(Ticket $ticket): Response
+    public function show(Ticket $ticket, TicketRepository $ticketRepository): Response
     {
-        if ($ticket->isDeleted()) {
+        $root = $this->resolveRootTicket($ticket);
+
+        if ($root->isDeleted()) {
             return $this->redirectToRoute('app_ticket_index');
         }
 
         return $this->render('ticket/show.html.twig', [
-            'ticket' => $ticket,
+            'ticket' => $root,
+            'commentHistory' => $this->buildConversationHistory(
+                $root,
+                $ticketRepository->findRepliesOf($root)
+            ),
         ]);
     }
 
@@ -796,6 +814,18 @@ final class TicketController extends AbstractController
 
         if (!$this->canManageTicket($root)) {
             throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer ce ticket.');
+        }
+
+        if ($root->isEnabled()) {
+            $this->addFlash('error', 'Echec de la suppression : ce ticket est encore actif ou en cours. Veuillez d\'abord le clôturer.');
+
+            if ($redirectTo === 'chat') {
+                return $this->redirectToRoute('app_ticket_chat_show', [
+                    'id' => $root->getId(),
+                ], Response::HTTP_SEE_OTHER);
+            }
+
+            return $this->redirectToRoute('app_ticket_index', [], Response::HTTP_SEE_OTHER);
         }
 
         if (!$root->isDeleted()) {
@@ -872,6 +902,81 @@ final class TicketController extends AbstractController
     private function resolveRootTicket(Ticket $ticket): Ticket
     {
         return $ticket->isRootTicket() ? $ticket : ($ticket->getParent() ?? $ticket);
+    }
+
+    /**
+     * @param Ticket[] $replies
+     */
+    private function buildConversationHistory(Ticket $ticket, array $replies = []): ?string
+    {
+        $root = $this->resolveRootTicket($ticket);
+        $messages = [];
+
+        $rootMessage = trim((string) ($root->getDescription() ?? ''));
+        if ($rootMessage === '' && $root->hasAttachment()) {
+            $rootMessage = 'Fichier joint';
+        }
+
+        if ($rootMessage !== '') {
+            $messages[] = $this->formatConversationMessage($root, $rootMessage);
+        }
+
+        foreach ($replies as $reply) {
+            $replyMessage = trim((string) ($reply->getDescription() ?? ''));
+            if ($replyMessage === '' && $reply->hasAttachment()) {
+                $replyMessage = 'Fichier joint';
+            }
+
+            if ($replyMessage === '') {
+                continue;
+            }
+
+            $messages[] = $this->formatConversationMessage($reply, $replyMessage);
+        }
+
+        if ($messages !== []) {
+            return implode(PHP_EOL . PHP_EOL, $messages);
+        }
+
+        $legacyComment = trim((string) ($root->getComment() ?? ''));
+
+        return $legacyComment !== '' ? $legacyComment : null;
+    }
+
+    private function formatConversationMessage(Ticket $ticket, string $message): string
+    {
+        $createdAt = $ticket->getCreatedAt();
+        $formattedDate = $createdAt ? $createdAt->format('d/m/Y H:i') : 'Date inconnue';
+
+        return sprintf(
+            '[%s] %s: %s',
+            $formattedDate,
+            $this->resolveTicketAuthor($ticket),
+            $message
+        );
+    }
+
+    private function resolveTicketAuthor(Ticket $ticket): string
+    {
+        $createdBy = $ticket->getCreatedby();
+        if ($createdBy instanceof \App\Entity\User) {
+            $username = trim((string) ($createdBy->getUsername() ?? $createdBy->getUserIdentifier()));
+            if ($username !== '') {
+                return $username;
+            }
+        }
+
+        $user = $ticket->getUser();
+        if ($user instanceof \App\Entity\User) {
+            $username = trim((string) ($user->getUsername() ?? $user->getUserIdentifier()));
+            if ($username !== '') {
+                return $username;
+            }
+        }
+
+        $marchand = trim((string) ($ticket->getMarchand() ?? ''));
+
+        return $marchand !== '' ? $marchand : 'Utilisateur';
     }
 
     private function canAccessTicket(Ticket $ticket): bool

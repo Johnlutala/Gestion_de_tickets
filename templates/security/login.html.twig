@@ -2,10 +2,11 @@
 
 {% block body %}
 	<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
-		<div class="row shadow-lg rounded overflow-hidden" style="max-width:900px; width:100%;">
+		<div
+			class="row shadow-lg rounded overflow-hidden" style="max-width:900px; width:100%;">
 			<!-- IMAGE -->
-			<div class="col-md-6 d-none d-md-block p-0">
-				<img src="{{ asset('images/fp.png') }}" class="img-fluid h-auto w-100 m-4 mt-5 object-fit-contain" alt="login image">
+			<div class="col-md-6 d-none d-md-flex align-items-center justify-content-center p-4 bg-white">
+				<img src="{{ asset('images/fp.png') }}" class="img-fluid object-fit-contain" style="max-width: 150%; width: 100%; max-height: 78vh;" alt="login image">
 			</div>
 
 			<!-- FORMULAIRE -->
@@ -13,14 +14,14 @@
 				<h3 class="text-center mb-4">Connexion</h3>
 				<form method="post" action="{{ path('app_login') }}">
 					{% if error %}
-						<div class="alert alert-danger">
+						<div class="alert alert-danger text-center">
 							{{ error.messageKey|trans(error.messageData, 'security') }}
 						</div>
 					{% endif %}
 
 					<div class="mb-3 mt-5">
 						<label class="form-label">Nom d'utilisateur</label>
-						<input type="text" value="{{ last_username }}" name="_username" id="username" class="form-control" placeholder="Entrer votre username" autocomplete="username" required autofocus>
+						<input type="text" value="{{ last_username }}" name="_username" id="username" class="form-control" placeholder="Entrer votre utilisateur" autocomplete="username" required autofocus>
 					</div>
 
 					<div class="mb-3">
@@ -50,19 +51,18 @@
 		</div>
 	</div>
 
-<script>
-document.getElementById("togglePassword").addEventListener("click", function () {
-    const input = document.getElementById("password"); // <- correspond au HTML
-    const icon = document.getElementById("passwordIcon");
+	<script>
+		document.getElementById("togglePassword").addEventListener("click", function () {
+const input = document.getElementById("password"); // <- correspond au HTML
+const icon = document.getElementById("passwordIcon");
 
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.replace("bi-eye", "bi-eye-slash");
-    } else {
-        input.type = "password";
-        icon.classList.replace("bi-eye-slash", "bi-eye");
-    }
+if (input.type === "password") {
+input.type = "text";
+icon.classList.replace("bi-eye", "bi-eye-slash");
+} else {
+input.type = "password";
+icon.classList.replace("bi-eye-slash", "bi-eye");
+}
 });
-</script>
+	</script>
 {% endblock %}
-

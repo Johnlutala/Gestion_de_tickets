@@ -1,31 +1,28 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Ticket{% endblock %}
+{% block title %} - Modifier Ticket{% endblock %}
 
 {% block body %}
-   <div class="container" style="margin-right: 20px;">
-
+	<div class="container" style="margin-right: 20px;">
 		<div class="card mb-4">
-
 			<div class="card-body">
-
 				<div class="d-flex justify-content-between align-items-center mb-3">
 					<div>
 						<h4 class="fw-bold mb-0">
 							<i class="bi bi-pencil text-warning me-2"></i>
 							Modifier le ticket
 						</h4>
-						<small class="text-muted">Modifier les informations du ticket </small>
+						<small class="text-muted">Modifier les informations du ticket
+						</small>
 					</div>
 
 				</div>
 
-            {{ include('ticket/_form.html.twig', {'button_label': 'Update'}) }}
+				{{ include('ticket/_form.html.twig', {'button_label': 'Update'}) }}
 
 			</div>
 		</div>
 	</div>
-
 
 
 {% endblock %}

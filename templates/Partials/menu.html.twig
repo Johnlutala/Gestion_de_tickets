@@ -38,13 +38,13 @@
 				</ul>
 			</li>
 
-			<li class="dropdown">
+		<li class="dropdown">
 				{% if app.user %}
 					<a href="javascript:void(0);" class="dropdown-toggle" title="Mon compte" data-toggle="dropdown" role="button">
 						<i class="zmdi zmdi-account"></i>
 					</a>
 					<ul class="dropdown-menu slideUp2">
-						<li class="header">Mon compte</li>
+						<li class="header text-center">Mon compte</li>
 						<li class="body p-2">
 							<div class="d-flex align-items-center mb-2">
 								<div style="width:42px;height:42px;border-radius:50%;background:#128C7E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;margin-right:10px;flex-shrink:0;">
@@ -56,6 +56,29 @@
 									</div>
 									<div class="small text-muted">{{ app.user.nom|default('') }}
 										{{ app.user.prenom|default('') }}</div>
+								</div>
+							</div>
+							{% set fullName = [app.user.prenom|default(''), app.user.nom|default('')]|filter(value => value is not empty)|join(' ') %}
+							{% set profileName = app.user.profile and app.user.profile.nom ? app.user.profile.nom|replace({'ROLE_': ''}) : 'Non défini' %}
+							{% set applicationName = app.user.application and app.user.application.name ? app.user.application.name : (app.user.nameApplication|default('Non définie')) %}
+							<div class="mb-2">
+								<h3 class="btn btn-sm btn-primary mb-2 w-100 text-center">
+									<i class="zmdi zmdi-account-circle me-1"></i>
+									Profil
+								</h3>
+								<div class="small mt-4" style="line-height:1.4; margin-left: 50px;">
+									<div class="mb-1">
+										<strong>Noms :</strong>
+										{{ fullName != '' ? fullName : 'Non renseigné' }}
+									</div>
+									<div class="mb-1">
+										<strong>Rôle :</strong>
+										{{ profileName }}
+									</div>
+									<div>
+										<strong>Application :</strong>
+										{{ applicationName }}
+									</div>
 								</div>
 							</div>
 							<hr class="my-2">
@@ -94,10 +117,17 @@
 				</li>
 
 				<li>
-					<a href="{{ path('app_ticket_index') }}" class="menu">
-						<i class="zmdi zmdi-assignment"></i>
-						<span>Tickets</span>
-					</a>
+					{% if is_granted('ROLE_ADMIN') %}
+						<a href="{{ path('app_ticket_index') }}" class="menu">
+							<i class="zmdi zmdi-assignment"></i>
+							<span>Tickets</span>
+						</a>
+					{% elseif is_granted('ROLE_MARCHAND') %}
+						<a href="{{ path('app_ticket_chat') }}" class="menu">
+							<i class="zmdi zmdi-assignment"></i>
+							<span>Tickets</span>
+						</a>
+					{% endif %}
 				</li>
 				<li>
 					<a href="{{ path('app_application_index') }}" class="menu">
@@ -108,7 +138,7 @@
 
 				<li>
 					{% if is_granted('ROLE_ADMIN') %}
-						<a href="javascript:void(0);" class="menu-toggle">
+						<a href="javascript:void(0);" class="menu-toggle" style="margin-right: 50px;">
 							<i class="zmdi zmdi-folder"></i>
 							<span>Admin</span>
 						</a>
@@ -163,14 +193,14 @@
 
 		{% for label, messages in app.flashes %}
 			{% for message in messages %}
-				<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show" role="alert" id="auto-alert-{{ label }}">
+				<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : 'info') }} alert-dismissible fade show text-center" role="alert" id="auto-alert-{{ label }}">
 					<i class="bi bi-{{ label == 'error' ? 'exclamation-triangle' : (label == 'success' ? 'check-circle' : 'info-circle') }} me-2"></i>
 					{{ message }}
 					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 				</div>
 				<script>
 					setTimeout(function () {
-var alert = document.getElementById('auto-alert-  {{ label }}');
+var alert = document.getElementById('auto-alert- {{ label }}');
 if (alert) {
 alert.classList.remove('show');
 alert.classList.add('fade');

@@ -10,3 +10,14 @@
 		<span class="point"></span>
 	</div>
 {% endif %}
+
+
+{#
+<li class="page-item {{ currentPage == totalPages ? 'disabled' : '' }}">
+					<a class="page-link" href="{{ currentPage < totalPages ? path('app_ticket_index', paginationParams|merge({ page: currentPage + 1 })) : '#' }}">&gt;</a>
+				</li>
+			</ul>
+		</nav>
+	{% endif %}
+</div>
+{% endblock %} #}

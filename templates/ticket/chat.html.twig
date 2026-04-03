@@ -1,12 +1,13 @@
 {% extends 'base.html.twig' %}
 
 {% block title %}
-	- Support Tickets
+	- Plate-forme Support Tickets
 {% endblock %}
 
 {% block stylesheets %}
 	{{ parent() }}
 	<link rel="stylesheet" href="{{ asset('styles/ticket-chat.css') }}">
+</style>
 {% endblock %}
 
 {% block javascripts %}
@@ -14,8 +15,9 @@
 	<script src="{{ asset('js/ticket-chat.js') }}"></script>
 {% endblock %}
 
+
 {% block body %}
-	<div class="container py-5 mb-3">
+	<div class="container py-5 mb-3 ">
 		<div
 			class="chat-wrapper" id="chatWrapper" data-has-selected="{{ selected is not null ? 'true' : 'false' }}">
 			{# ══════════════════════════════════════
