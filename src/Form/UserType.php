@@ -50,19 +50,19 @@ class UserType extends AbstractType
                     ),
                 ],
             ])
-            ->add('application', EntityType::class, [
-                'class' => Application::class,
-                'label' => 'Nom de l\'application',
-                'choice_label' => 'name',
-                'placeholder' => 'Sélectionnez une application',
-                'mapped' => true,
-                'expanded' => false,
-                'multiple' => false,
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-selects',
-                ],
-            ])
+            // ->add('application', EntityType::class, [
+            //     'class' => Application::class,
+            //     'label' => 'Nom de l\'application',
+            //     'choice_label' => 'name',
+            //     'placeholder' => 'Sélectionnez une application',
+            //     'mapped' => true,
+            //     'expanded' => false,
+            //     'multiple' => false,
+            //     'required' => false,
+            //     'attr' => [
+            //         'class' => 'form-selects',
+            //     ],
+            // ])
 
             ->add('profile', EntityType::class, [
                 'class' => Role::class,

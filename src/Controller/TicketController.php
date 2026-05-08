@@ -8,10 +8,12 @@ use App\Repository\TicketRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/ticket', name: 'app_ticket_')]
 final class TicketController extends AbstractController
@@ -591,11 +593,262 @@ final class TicketController extends AbstractController
         }
 
         $em->persist($reply);
+
+        if ($text !== '') {
+            $assistantReply = $this->createAssistantReply($root, $text, $em);
+            if ($assistantReply !== null) {
+                $em->persist($assistantReply);
+            }
+        }
+
         $em->flush();
 
         return $this->redirectToRoute('app_ticket_chat_show', [
             'id' => $root->getId(),
         ]);
+    }
+
+    #[Route('/chat/{id}/ai-reply', name: 'chat_ai_reply', methods: ['POST'])]
+    public function aiReply(
+        Request $request,
+        Ticket $ticket,
+        EntityManagerInterface $em,
+        HttpClientInterface $httpClient,
+    ): Response {
+        try {
+            if (!$this->isGranted('ROLE_ADMIN') && !$this->isGranted('ROLE_MARCHAND')) {
+                return new JsonResponse(['error' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            }
+
+            if (!$this->isCsrfTokenValid('reply' . $ticket->getId(), (string) $request->request->get('_token'))) {
+                return new JsonResponse(['error' => 'Jeton CSRF invalide.'], Response::HTTP_FORBIDDEN);
+            }
+
+            if ($ticket->isDeleted()) {
+                return new JsonResponse(['error' => 'Ticket introuvable.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $root = $this->resolveRootTicket($ticket);
+
+            if (!$this->canAccessTicket($root)) {
+                return new JsonResponse(['error' => 'Accès refusé à ce ticket.'], Response::HTTP_FORBIDDEN);
+            }
+
+            if (!$root->isEnabled()) {
+                return new JsonResponse(['error' => 'Ce ticket est déjà clôturé.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $text = trim((string) $request->request->get('reply_text', ''));
+            $attachment = $request->files->get('reply_attachment');
+
+            if ($text === '' && !($attachment instanceof UploadedFile)) {
+                return new JsonResponse(['error' => 'Ajoutez un message ou un fichier avant l\'envoi.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $reply = new Ticket();
+            $reply->setTitle($root->getTitle());
+            $reply->setDescription($text !== '' ? $text : 'Fichier joint');
+            $reply->setMarchand($this->getUser()?->getUserIdentifier() ?? 'Admin');
+            $reply->setComment($text !== '' ? $text : 'Fichier joint');
+            $reply->setParent($root);
+            $reply->setEnabled(true);
+            $reply->setDeleted(false);
+            $reply->setNoted(false);
+            $reply->setNote(0);
+            $reply->setCreatedAt(new \DateTimeImmutable());
+            if ($root->getApplication()) {
+                $reply->setApplication($root->getApplication());
+            }
+            if ($root->getUser()) {
+                $reply->setUser($this->getUser() ?? $root->getUser());
+            }
+            if ($this->getUser()) {
+                $reply->setCreatedby($this->getUser());
+            }
+            if ($attachment instanceof UploadedFile) {
+                $uploadError = $this->attachUploadedFile($attachment, $reply);
+                if ($uploadError !== null) {
+                    return new JsonResponse(['error' => $uploadError], Response::HTTP_BAD_REQUEST);
+                }
+            }
+
+            $em->persist($reply);
+
+            $assistantReply = null;
+            if ($text !== '') {
+                $aiProvider = $this->getAiProvider();
+                $apiKey = $this->getAiApiKey();
+
+                if (!$apiKey) {
+                    return new JsonResponse([
+                        'error' => 'Configuration IA manquante. Configurez GEMINI_API_KEY ou OPENAI_API_KEY dans .env.local.',
+                    ], Response::HTTP_INTERNAL_SERVER_ERROR);
+                }
+
+                $assistantReply = $this->createAssistantReply($root, $text, $em, $httpClient, $aiProvider, $apiKey);
+                if ($assistantReply !== null) {
+                    $em->persist($assistantReply);
+                }
+            }
+
+            $em->flush();
+
+            return new JsonResponse([
+                'reply' => [
+                    'sender' => $this->getUser()?->getUserIdentifier() ?? 'Vous',
+                    'content' => $reply->getDescription(),
+                    'time' => $reply->getCreatedAt()->format('H:i'),
+                ],
+                'assistant' => $assistantReply ? [
+                    'sender' => $assistantReply->getMarchand(),
+                    'content' => $assistantReply->getDescription(),
+                    'time' => $assistantReply->getCreatedAt()->format('H:i'),
+                ] : null,
+            ]);
+        } catch (\Throwable $e) {
+            $payload = ['error' => 'Erreur interne du serveur.'];
+            $debug = getenv('APP_DEBUG') === '1' || getenv('APP_DEBUG') === 'true' || ($_SERVER['APP_DEBUG'] ?? '') === '1';
+            if ($debug) {
+                $payload['details'] = $e->getMessage();
+            }
+
+            return new JsonResponse($payload, Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private function createAssistantReply(Ticket $root, string $userMessage, EntityManagerInterface $em, HttpClientInterface $httpClient, string $aiProvider, string $apiKey): ?Ticket
+    {
+        $assistantText = $this->fetchAiAnswer($userMessage, $httpClient, $aiProvider, $apiKey);
+        if ($assistantText === '') {
+            return null;
+        }
+
+        $assistant = new Ticket();
+        $assistant->setTitle($root->getTitle());
+        $assistant->setDescription($assistantText);
+        $assistant->setMarchand('Chatbox Cybersecurity(UNIKIN)');
+        $assistant->setComment($assistantText);
+        $assistant->setParent($root);
+        $assistant->setEnabled(true);
+        $assistant->setDeleted(false);
+        $assistant->setNoted(false);
+        $assistant->setNote(0);
+        $assistant->setCreatedAt(new \DateTimeImmutable());
+        if ($root->getApplication()) {
+            $assistant->setApplication($root->getApplication());
+        }
+        if ($root->getUser()) {
+            $assistant->setUser($this->getUser() ?? $root->getUser());
+        }
+
+        return $assistant;
+    }
+
+    private function fetchAiAnswer(string $message, HttpClientInterface $httpClient, string $aiProvider, string $apiKey): string
+    {
+        $prompt = sprintf('Tu es un assistant expert en cybersécurité. Réponds en français, clairement, simplement et précisément à cette question : %s', trim($message));
+
+        if ($aiProvider === 'gemini') {
+            return $this->fetchGeminiAnswer($message, $httpClient, $apiKey);
+        } elseif ($aiProvider === 'openai') {
+            return $this->fetchOpenAiAnswer($prompt, $httpClient, $apiKey);
+        }
+
+        return 'Configuration IA invalide. Utilisez AI_PROVIDER="gemini" ou "openai".';
+    }
+
+    private function fetchGeminiAnswer(string $message, HttpClientInterface $httpClient, string $apiKey): string
+    {
+        try {
+            $response = $httpClient->request('POST', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=' . $apiKey, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'contents' => [
+                        [
+                            'parts' => [
+                                [
+                                    'text' => "Tu es un assistant expert en cybersécurité. et voici les instructions à suivre : Réponds en français, faire retour de ligne s'il y a un paragraphe, répondez uniquement aux questions liées à : salutation, cybersecurité, informatique, technologie ou sécurité informatique, Sois clairement et bref, faire la synthèse, simplement et précisément à cette question et si la question n'est pas liée alors répond seulement désolé cette question ne pas lié à la cybersecurite : " . trim($message)
+                                ]
+                            ]
+                        ]
+                    ],
+                    'generationConfig' => [
+                        'temperature' => 0.3,
+                        'maxOutputTokens' => 800,
+                    ]
+                ],
+                'timeout' => 10,
+            ]);
+
+            $data = $response->toArray(false);
+
+            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                return trim($data['candidates'][0]['content']['parts'][0]['text']);
+            }
+
+            return 'Erreur dans la réponse .';
+        } catch (\Throwable $e) {
+            $errorMessage = $e->getMessage();
+            if (str_contains($errorMessage, 'quota') || str_contains($errorMessage, 'limit')) {
+                return 'Votre quota Gemini est épuisé. Veuillez vérifier votre compte Google AI Studio.';
+            }
+            return 'Erreur temporaire du service. Veuillez réessayer dans quelques instants.';
+        }
+    }
+
+    private function fetchOpenAiAnswer(string $prompt, HttpClientInterface $httpClient, string $apiKey): string
+    {
+        $model = $_SERVER['OPENAI_MODEL'] ?? 'gpt-3.5-turbo';
+
+        try {
+            $response = $httpClient->request('POST', 'https://api.openai.com/v1/chat/completions', [
+                'headers' => [
+                    'Authorization' => sprintf('Bearer %s', $apiKey),
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => 'Tu es un assistant expert en cybersécurité, utile et bienveillant.'],
+                        ['role' => 'user', 'content' => $prompt],
+                    ],
+                    'temperature' => 0.3,
+                    'max_tokens' => 1500,
+                ],
+                'timeout' => 20,
+            ]);
+
+            $data = $response->toArray(false);
+            return trim($data['choices'][0]['message']['content'] ?? '');
+        } catch (\Throwable $e) {
+            $errorMessage = $e->getMessage();
+            if (
+                str_contains($errorMessage, 'insufficient_quota') ||
+                str_contains($errorMessage, 'quota') ||
+                str_contains($errorMessage, 'billing')
+            ) {
+                return 'Votre quota OpenAI est épuisé. Veuillez vérifier votre compte OpenAI et renouveler votre abonnement pour continuer à utiliser l\'assistant IA.';
+            }
+            return 'Erreur temporaire du service OpenAI. Veuillez réessayer dans quelques instants.';
+        }
+    }
+
+    private function getAiProvider(): string
+    {
+        return $_SERVER['AI_PROVIDER'] ?? 'gemini';
+    }
+
+    private function getAiApiKey(): ?string
+    {
+        $provider = $this->getAiProvider();
+        if ($provider === 'gemini') {
+            return $_SERVER['GEMINI_API_KEY'] ?? null;
+        } elseif ($provider === 'openai') {
+            return $_SERVER['OPENAI_API_KEY'] ?? $_SERVER['OPENAI_KEY'] ?? null;
+        }
+        return null;
     }
 
     #[Route('/{id}/evaluate', name: 'evaluate', methods: ['POST'])]

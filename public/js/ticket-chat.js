@@ -186,12 +186,109 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const scrollMessages = () => {
+        if (!chatMessages) {
+            return;
+        }
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    const appendMessage = (sender, content, isMe, time) => {
+        if (!chatMessages || !content) {
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = `msg-bubble-wrap ${isMe ? 'me' : 'them'}`;
+
+        if (!isMe) {
+            const nameEl = document.createElement('div');
+            nameEl.className = 'msg-sender-name';
+            nameEl.textContent = sender;
+            wrapper.appendChild(nameEl);
+        }
+
+        const bubble = document.createElement('div');
+        bubble.className = 'msg-bubble';
+        bubble.textContent = content;
+        wrapper.appendChild(bubble);
+
+        const timeEl = document.createElement('div');
+        timeEl.className = 'msg-time';
+        timeEl.textContent = time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        wrapper.appendChild(timeEl);
+
+        chatMessages.appendChild(wrapper);
+        scrollMessages();
+    };
+
     if (replyForm) {
-        replyForm.addEventListener('submit', (event) => {
+        replyForm.addEventListener('submit', async (event) => {
             const textValue = replyText ? replyText.value.trim() : '';
             const hasFile = replyAttachmentInput ? replyAttachmentInput.files.length > 0 : false;
             if (!textValue && !hasFile) {
                 event.preventDefault();
+                return;
+            }
+
+            if (hasFile || !replyForm.dataset.aiEndpoint) {
+                return;
+            }
+
+            event.preventDefault();
+            const sendButton = replyForm.querySelector('.btn-send');
+            if (sendButton) {
+                sendButton.disabled = true;
+            }
+
+            try {
+                const response = await fetch(replyForm.dataset.aiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: new FormData(replyForm),
+                });
+
+                const responseText = await response.text();
+                let data = null;
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('Réponse JSON invalide du serveur:', responseText, parseError);
+                }
+
+                if (!response.ok) {
+                    const message = data?.error || responseText || `Erreur serveur ${response.status}`;
+                    const detail = data?.details ? `\n${data.details}` : '';
+                    window.alert(message + detail);
+                    return;
+                }
+
+                if (!data || data.error) {
+                    const detail = data?.details ? `\n${data.details}` : '';
+                    window.alert((data?.error || 'Réponse invalide du serveur.') + detail);
+                    return;
+                }
+
+                appendMessage(data.reply.sender, data.reply.content, true, data.reply.time);
+                if (data.assistant) {
+                    appendMessage(data.assistant.sender, data.assistant.content, false, data.assistant.time);
+                }
+
+                if (replyText) {
+                    replyText.value = '';
+                    autoResizeTextarea();
+                }
+            } catch (error) {
+                console.error('Erreur AJAX IA:', error);
+                window.alert(`Erreur de connexion au service IA : ${error?.message || 'vérifiez la console'}`);
+            } finally {
+                if (sendButton) {
+                    sendButton.disabled = false;
+                }
             }
         });
     }

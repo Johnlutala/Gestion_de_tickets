@@ -28,8 +28,8 @@ class AppFixtures extends Fixture
 
         // Créer un privilège
         $privilege = new Privilege();
-        $privilege->setName('CREATE_TICKET');
-        $privilege->setDescription('Permet de créer des tickets');
+        $privilege->setName('TOUT PRIVILEGE');
+        $privilege->setDescription('Accès à toutes les fonctionnalités');
         $manager->persist($privilege);
 
         // Lier le privilège au rôle
@@ -37,8 +37,8 @@ class AppFixtures extends Fixture
 
         // Créer l'admin
         $admin = new User();
-        $admin->setUsername('johnkisina');
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
+        $admin->setUsername('christine');
+        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'Admin123@'));
         $admin->setProfile($profile); // IMPORTANT
         $manager->persist($admin);
 

@@ -28,19 +28,19 @@
 
 				<form method="get" id="user-filter-form" class="row g-2 mt-3">
 					<input type="hidden" name="q" value="{{ searchQuery|default('') }}">
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Application</label>
-						<select name="application" id="user-application-select" class="form-select form-select-sm" onchange="this.form.submit()">
+					{#<div class="col-sm-6 col-lg-4">
+							 <label class="form-label text-uppercase small text-muted mb-1">Application</label>
+					<select name="application" id="user-application-select" class="form-select form-select-sm" onchange="this.form.submit()">
 							<option value="">Toutes les applications</option>
 							{% for application in applications %}
 								<option value="{{ application.id }}" {{ selectedApplication == application.id ? 'selected' : '' }}>{{ application.name }}</option>
 							{% endfor %}
 						</select>
-					</div>
+					</div>#}
 					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Marchand</label>
+						<label class="form-label text-uppercase small text-muted mb-1">Utilisateur</label>
 						<select name="marchand" id="user-marchand-select" class="form-select form-select-sm" onchange="this.form.submit()">
-							<option value="">Tous les marchands</option>
+							<option value="">Tous les Utilisateurs</option>
 							{% for marchand in marchands %}
 								<option value="{{ marchand.id }}" {{ selectedMarchand == marchand.id ? 'selected' : '' }}>{{ marchand.username }}</option>
 							{% endfor %}
@@ -101,7 +101,6 @@
 								<th>#</th>
 								<th>Noms</th>
 								<th>Nom d'utilisateur</th>
-								<th>Application</th>
 								<th>Profile</th>
 								<th>Privilèges</th>
 								<th class="text-end">Actions</th>
@@ -121,7 +120,6 @@
 											{{ user.username }}
 										</div>
 									</td>
-									<td>{{ user.application ? user.application.name|default('no defined') : 'no defined' }}</td>
 									<td>
 										{% if user.profile %}
 											<span class="badge bg-primary text-white" style="font-size: 0.7rem; padding: 0.5rem 0.75rem;">

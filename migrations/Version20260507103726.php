@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20260309144941 extends AbstractMigration
+final class Version20260507103726 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -26,7 +26,7 @@ final class Version20260309144941 extends AbstractMigration
         $this->addSql('ALTER TABLE tb_ticket ADD CONSTRAINT FK_2A77B4EFA76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE tb_ticket ADD CONSTRAINT FK_2A77B4EFF0B5AF0B FOREIGN KEY (createdby_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE tb_ticket ADD CONSTRAINT FK_2A77B4EF727ACA70 FOREIGN KEY (parent_id) REFERENCES tb_ticket (id) ON DELETE CASCADE');
-        $this->addSql('ALTER TABLE user ADD nom VARCHAR(120) DEFAULT NULL, ADD prenom VARCHAR(120) DEFAULT NULL, ADD type VARCHAR(30) DEFAULT NULL, ADD name_application VARCHAR(255) DEFAULT NULL');
+        $this->addSql('ALTER TABLE user ADD CONSTRAINT FK_8D93D6493E030ACD FOREIGN KEY (application_id) REFERENCES tb_application (id)');
         $this->addSql('ALTER TABLE user ADD CONSTRAINT FK_8D93D649CCFA12B8 FOREIGN KEY (profile_id) REFERENCES tb_role (id)');
     }
 
@@ -39,7 +39,7 @@ final class Version20260309144941 extends AbstractMigration
         $this->addSql('ALTER TABLE tb_ticket DROP FOREIGN KEY FK_2A77B4EFA76ED395');
         $this->addSql('ALTER TABLE tb_ticket DROP FOREIGN KEY FK_2A77B4EFF0B5AF0B');
         $this->addSql('ALTER TABLE tb_ticket DROP FOREIGN KEY FK_2A77B4EF727ACA70');
+        $this->addSql('ALTER TABLE user DROP FOREIGN KEY FK_8D93D6493E030ACD');
         $this->addSql('ALTER TABLE user DROP FOREIGN KEY FK_8D93D649CCFA12B8');
-        $this->addSql('ALTER TABLE user DROP nom, DROP prenom, DROP type, DROP name_application');
     }
 }

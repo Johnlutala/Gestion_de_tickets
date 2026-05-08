@@ -75,10 +75,10 @@
 										<strong>Rôle :</strong>
 										{{ profileName }}
 									</div>
-									<div>
+									{# <div>
 										<strong>Application :</strong>
 										{{ applicationName }}
-									</div>
+									</div> #}
 								</div>
 							</div>
 							<hr class="my-2">
@@ -125,16 +125,16 @@
 					{% elseif is_granted('ROLE_MARCHAND') %}
 						<a href="{{ path('app_ticket_chat') }}" class="menu">
 							<i class="zmdi zmdi-assignment"></i>
-							<span>Tickets</span>
+							<span>Chatbox</span>
 						</a>
 					{% endif %}
 				</li>
-				<li>
+				{# <li>
 					<a href="{{ path('app_application_index') }}" class="menu">
 						<i class="zmdi zmdi-apps"></i>
 						<span>Applications</span>
 					</a>
-				</li>
+				</li> #}
 
 				<li>
 					{% if is_granted('ROLE_ADMIN') %}
@@ -175,7 +175,7 @@
 								<a href="{{ path('app_home_index') }}">
 									<i class="zmdi zmdi-home"></i>Menu</a>
 							</li>
-							<li class="breadcrumb-item active">Gestion de Ticket</li>
+							<li class="breadcrumb-item active">Gestion de Chatbot</li>
 						</ul>
 						<button class="btn btn-primary btn-icon mobile_menu" type="button">
 							<i class="zmdi zmdi-sort-amount-desc"></i>

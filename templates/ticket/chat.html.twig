@@ -7,7 +7,6 @@
 {% block stylesheets %}
 	{{ parent() }}
 	<link rel="stylesheet" href="{{ asset('styles/ticket-chat.css') }}">
-</style>
 {% endblock %}
 
 {% block javascripts %}
@@ -15,107 +14,10 @@
 	<script src="{{ asset('js/ticket-chat.js') }}"></script>
 {% endblock %}
 
-
 {% block body %}
-	<div class="container py-5 mb-3 ">
-		<div
-			class="chat-wrapper" id="chatWrapper" data-has-selected="{{ selected is not null ? 'true' : 'false' }}">
-			{# ══════════════════════════════════════
-																																																																			PANEL GAUCHE — Liste des conversations
-																																																																		  ══════════════════════════════════════ #}
-			<div class="chat-sidebar" id="chatSidebar">
-				<div class="chat-sidebar-header">
-					<h5>
-						<i class="bi bi-chat-dots-fill me-2"></i>Tickets</h5>
-					{% if is_granted('ROLE_MARCHAND') %}
-						<button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#modalNewTicket" title="Nouveau ticket">
-							<i class="bi bi-plus-lg chat-accent-icon"></i>
-						</button>
-					{% endif %}
-				</div>
-				<div class="chat-sidebar-search">
-					<input type="text" id="searchConv" class="form-control form-control-sm w-100" placeholder="Rechercher un ticket…">
-				</div>
-
-				<div class="chat-list" id="chatList">
-					{% if conversations is empty %}
-						<div class="p-4 text-center text-muted small">
-							<i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>
-							Aucun ticket. Créez-en un !
-						</div>
-					{% else %}
-						{% for conv in conversations %}
-							{% set initiale = conv.marchand|first|upper %}
-							{% set isActive = selected is not null and selected.id == conv.id %}
-							{% set isOwner = is_granted('ROLE_MARCHAND') and app.user and conv.createdby and conv.createdby.id == app.user.id %}
-							{% set isConvEvaluated = conv.note is not null and conv.note > 0 %}
-							<div class="chat-list-entry {{ isActive ? 'active' : '' }}">
-								<a href="{{ path('app_ticket_chat_show', {id: conv.id}) }}" class="chat-list-item {{ isActive ? 'active' : '' }}" data-title="{{ conv.title|lower }}" data-marchand="{{ conv.marchand|lower }}">
-									<div class="chat-avatar">{{ initiale }}</div>
-									<div class="chat-item-info">
-										<div class="chat-item-title">{{ conv.title }}</div>
-										<div class="chat-item-preview">
-											<span class="text-muted">{{ conv.marchand }}</span>
-											—
-											{{ conv.description|slice(0,40) }}
-											{% if conv.description|length > 40 %}…
-											{% endif %}
-										</div>
-									</div>
-									<div class="chat-item-meta d-flex flex-column align-items-end gap-1">
-										<span class="ticket-status-badge {{ not conv.enabled ? 'closed' : (isConvEvaluated ? 'rated' : 'open') }}">
-											{% if not conv.enabled %}
-												Clôturé
-											{% elseif isConvEvaluated %}
-												{{ conv.note }}/20
-											{% else %}
-												Ouvert
-											{% endif %}
-										</span>
-										{% if conv.createdAt %}
-											<span>{{ conv.createdAt|date('d/m') }}</span>
-										{% endif %}
-										{% if conv.replies|length > 0 %}
-											<span class="badge-count">{{ conv.replies|length }}</span>
-										{% endif %}
-									</div>
-								</a>
-								{% if isActive and isOwner %}
-									<div class="chat-ticket-actions">
-										<button type="button" class="btn btn-sm btn-outline-success chat-ticket-action-btn js-open-evaluation" {% if isConvEvaluated or not conv.enabled %} disabled {% endif %}>
-											<i class="bi bi-star-fill me-1"></i>
-											{{ isConvEvaluated ? 'Déjà évalué' : 'Évaluer' }}
-										</button>
-										<form id="close-ticket-chat-{{ conv.id }}" method="post" action="{{ path('app_ticket_close', {id: conv.id}) }}" class="d-none">
-											<input type="hidden" name="_token" value="{{ csrf_token('close' ~ conv.id) }}">
-											<input type="hidden" name="redirect_to" value="chat">
-										</form>
-										<a href="#" class="btn btn-sm btn-outline-secondary chat-ticket-action-btn js-submit-form-link {{ not isConvEvaluated or not conv.enabled ? 'disabled' : '' }}" data-form-id="close-ticket-chat-{{ conv.id }}" data-confirm-message="Voulez-vous clôturer ce ticket ?">
-											<i class="bi bi-check2-circle me-1"></i>
-											{{ conv.enabled ? 'Clôturer' : 'Clôturé' }}
-										</a>
-										<form id="delete-ticket-chat-{{ conv.id }}" method="post" action="{{ path('app_ticket_delete', {id: conv.id}) }}" class="d-none">
-											<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ conv.id) }}">
-											<input type="hidden" name="redirect_to" value="chat">
-										</form>
-										<a href="#" class="btn btn-sm btn-outline-danger chat-ticket-action-btn js-submit-form-link" data-form-id="delete-ticket-chat-{{ conv.id }}" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
-											<i class="bi bi-trash3-fill me-1"></i>Supprimer
-										</a>
-										{% if not isConvEvaluated and conv.enabled %}
-											<span class="chat-ticket-hint">Évaluer avant clôture</span>
-										{% endif %}
-									</div>
-								{% endif %}
-							</div>
-						{% endfor %}
-					{% endif %}
-				</div>
-			</div>
-
-			{# ══════════════════════════════════════
-																																																																																			       PANEL DROIT — Conversation
-																																																																																			       ══════════════════════════════════════ #}
-			<div class="chat-main" id="chatMain">
+	<div class="container-fluid py-5 mb-3">
+		<div class="chat-wrapper-full" id="chatWrapper">
+			<div class="chat-main-full" id="chatMain">
 				{% if selected is null %}
 					<div class="chat-empty">
 						<i class="bi bi-chat-square-dots-fill chat-empty-icon"></i>
@@ -125,48 +27,14 @@
 					{% set isClosed = not selected.enabled %}
 					{% set isEvaluated = selected.note is not null and selected.note > 0 %}
 					{% set canReply = not isClosed %}
-					{% set canManageSelected = is_granted('ROLE_MARCHAND') and app.user and selected.createdby and selected.createdby.id == app.user.id %}
 
-					{# ── Barre du haut ─────────────────── #}
-					<div class="chat-topbar">
-						<button class="btn-back-mobile" id="btnBackMobile" title="Retour" type="button">
-							<i class="bi bi-arrow-left"></i>
-						</button>
-						<div class="chat-avatar">{{ selected.marchand|first|upper }}</div>
-						<div class="info">
-							<h6>{{ selected.title }}</h6>
-							<small>
-								Marchand :
-								<strong>{{ selected.marchand }}</strong>
-								{% if selected.createdAt %}
-									—
-									{{ selected.createdAt|date('d/m/Y H:i') }}
-								{% endif %}
-							</small>
-						</div>
-						<div class="ms-auto d-flex gap-2 align-items-center">
-							<span class="ticket-status-badge {{ isClosed ? 'closed' : (isEvaluated ? 'rated' : 'open') }}">
-								{{ isClosed ? 'Clôturé' : (isEvaluated ? 'Évalué' : 'En cours') }}
-							</span>
-							{% if isEvaluated %}
-								<span class="ticket-score-badge">{{ selected.note }}/20</span>
-							{% endif %}
-							{% if canManageSelected and not isClosed %}
-								<a href="{{ path('app_ticket_edit', {id: selected.id}) }}" class="btn btn-sm btn-light" title="Modifier">
-									<i class="bi bi-pencil-fill chat-accent-icon"></i>
-								</a>
-							{% endif %}
-						</div>
+					<div class="chat-ai-hint alert alert-info mb-3 mx-3" style="font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;">
+						<p class="text-center"> Posez une question liée à la cybersécurité dans le champ ci-dessous,et l'Assistant en Cybersécurité répondra automatiquement.</p>
 					</div>
 
 					<div class="chat-content-shell">
-						<div
-							class="chat-conversation-area">
-							{# ── Messages ──────────────────────── #}
-							<div
-								class="chat-messages" id="chatMessages">
-
-								{# ── Premier message = ticket racine ── #}
+						<div class="chat-conversation-area">
+							<div class="chat-messages" id="chatMessages">
 								{% set isMe = app.user and selected.createdby and selected.createdby.id == app.user.id %}
 								<div class="msg-bubble-wrap {{ isMe ? 'me' : 'them' }}">
 									{% if not isMe %}
@@ -197,7 +65,6 @@
 									</div>
 								</div>
 
-								{# ── Réponses ──────────────────── #}
 								{% for reply in replies %}
 									{% set isMe = app.user and reply.createdby and reply.createdby.id == app.user.id %}
 									<div class="msg-bubble-wrap {{ isMe ? 'me' : 'them' }}">
@@ -229,138 +96,25 @@
 										</div>
 									</div>
 								{% endfor %}
-
 							</div>
-
-							{# /chat-messages #}
 
 							{% if not canReply %}
 								<div class="chat-readonly-notice">
-									<i class="bi bi-lock-fill" style="margin-right: 30%;"></i>
-									<span>Ce ticket est deja cloturé.</span>
+									<i class="bi bi-lock-fill"></i>
+									<span>Ce ticket est déjà clôturé.</span>
 								</div>
 							{% else %}
-								{# ── Zone de saisie ────────────────── #}
-								<form method="POST" action="{{ path('app_ticket_chat_reply', {id: selected.id}) }}" class="chat-input-area" id="replyForm" enctype="multipart/form-data">
+								<form method="POST" action="{{ path('app_ticket_chat_reply', {id: selected.id}) }}" data-ai-endpoint="{{ path('app_ticket_chat_ai_reply', {id: selected.id}) }}" class="chat-input-area" id="replyForm" enctype="multipart/form-data">
 									<input type="hidden" name="_token" value="{{ csrf_token('reply' ~ selected.id) }}">
-									<label for="replyAttachment" class="btn-attach" title="Joindre un fichier">
-										<i class="bi bi-paperclip"></i>
-									</label>
-									<input type="file" name="reply_attachment" id="replyAttachment" accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx" class="d-none">
-									<textarea name="reply_text" id="replyText" rows="1" placeholder="Écrire un message…"></textarea>
-									<span class="chat-file-meta" id="replyAttachmentName">Aucun fichier</span>
+									<textarea name="reply_text" id="replyText" rows="1" placeholder="Posez votre question de cybersécurité ici…"></textarea>
 									<button type="submit" class="btn-send" title="Envoyer">
 										<i class="bi bi-send-fill"></i>
 									</button>
 								</form>
 							{% endif %}
-
-							{% if canManageSelected %}
-								<div class="chat-ticket-actions mt-3">
-									{% if not isClosed %}
-										<button type="button" class="btn btn-sm btn-outline-success chat-ticket-action-btn js-open-evaluation" {% if isEvaluated %} disabled {% endif %}>
-											<i class="bi bi-star-fill me-1"></i>
-											{{ isEvaluated ? 'Déjà évalué' : 'Évaluer' }}
-										</button>
-									{% endif %}
-									<form method="post" action="{{ path('app_ticket_close', {id: selected.id}) }}" id="selected-ticket-close-form" class="d-none">
-										<input type="hidden" name="_token" value="{{ csrf_token('close' ~ selected.id) }}">
-										<input type="hidden" name="redirect_to" value="chat">
-									</form>
-									<a href="#" class="btn btn-sm btn-outline-secondary chat-ticket-action-btn js-submit-form-link {{ not isEvaluated or isClosed ? 'disabled' : '' }}" data-form-id="selected-ticket-close-form" data-confirm-message="Voulez-vous clôturer ce ticket ?">
-										<i class="bi bi-check2-circle me-1"></i>
-										{{ isClosed ? 'Clôturé' : 'Clôturer' }}
-									</a>
-
-
-									<form method="post" action="{{ path('app_ticket_delete', {id: selected.id}) }}" id="selected-ticket-delete-form" class="d-none">
-										<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ selected.id) }}">
-										<input type="hidden" name="redirect_to" value="chat">
-									</form>
-									<a href="#" class="btn btn-sm btn-outline-danger chat-ticket-action-btn js-submit-form-link" data-form-id="selected-ticket-delete-form" data-confirm-message="Voulez-vous vraiment supprimer ce ticket ?">
-										<i class="bi bi-trash3-fill me-1"></i>Supprimer
-									</a>
-								</div>
-							{% endif %}
 						</div>
-
-						{% if not isClosed %}
-							<aside class="chat-evaluation-panel" id="evaluationPanel">
-								<div class="d-flex justify-content-between align-items-start mb-3">
-									<div>
-										<h6>Évaluation du ticket</h6>
-										<p class="text-muted small mb-0">Attribuez une note sur 20 pour mesurer la satisfaction du marchand.</p>
-									</div>
-									<button type="button" class="btn-close js-close-evaluation" aria-label="Fermer"></button>
-								</div>
-
-								{% if isEvaluated %}
-									<div class="alert alert-success mb-3">
-										Le ticket a déjà été évalué.
-									</div>
-									<div class="evaluation-score-display mb-3">{{ selected.note }}<small>/20</small>
-									</div>
-									<p class="mb-0 text-muted small">Le ticket peut maintenant être clôturé s'il ne l'est pas encore.</p>
-								{% elseif canManageSelected %}
-									<form method="post" action="{{ path('app_ticket_evaluate', {id: selected.id}) }}" id="ticketEvaluationForm">
-										<input type="hidden" name="_token" value="{{ csrf_token('evaluate' ~ selected.id) }}">
-										<input type="hidden" name="note" id="ticketNoteHidden" value="10">
-										<label for="ticketNoteRange" class="form-label fw-semibold">Note sur 20</label>
-										<input type="range" class="form-range evaluation-slider" min="1" max="20" value="10" id="ticketNoteRange">
-										<div class="evaluation-score-display mb-3">
-											<span id="evaluationScoreValue">10</span>
-											<small>/20</small>
-										</div>
-										<label for="ticketNoteInput" class="form-label fw-semibold">Saisir la note</label>
-										<input type="number" min="1" max="20" value="10" id="ticketNoteInput" class="form-control mb-3">
-										<button type="button" class="btn w-100 chat-primary-btn" id="ticketEvaluationSubmit">
-											<i class="bi bi-check2-square me-1"></i>Valider l'évaluation
-										</button>
-									</form>
-								{% else %}
-									<div class="alert alert-light border mb-0">
-										Seul le marchand propriétaire peut évaluer ce ticket.
-									</div>
-								{% endif %}
-							</aside>
-						{% endif %}
 					</div>
-
 				{% endif %}
-			</div>
-
-			{# ══════════════════════════════════════
-																		            — Créer un nouveau ticket																																																						   ══════════════════════════════════════ #}
-			<div class="modal fade" id="modalNewTicket" tabindex="-1">
-				<div class="modal-dialog modal-dialog-centered">
-					<div class="modal-content">
-						<div class="modal-header">
-							<h5 class="modal-title">
-								<i class="bi bi-plus-circle-fill me-2"></i>Nouveau ticket
-							</h5>
-							<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-						</div>
-						<form id="new-ticket-form" method="POST" action="{{ path('app_ticket_chat') }}" enctype="multipart/form-data">
-							<div class="modal-body">
-								{{ form_widget(newForm.marchand, {attr: {class: 'form-control mb-3', placeholder: 'Nom du marchand'}}) }}
-								<label class="form-label fw-semibold">Titre</label>
-								{{ form_widget(newForm.title, {attr: {class: 'form-control mb-3', placeholder: 'Sujet du ticket'}}) }}
-								<label class="form-label fw-semibold">Message</label>
-								{{ form_widget(newForm.description, {attr: {class: 'form-control', rows: 4, placeholder: 'Description du problème…'}}) }}
-								<label class="form-label fw-semibold mt-3">Pièce jointe</label>
-								<input type="file" name="new_ticket_attachment" id="newTicketAttachment" class="form-control" accept="image/*,.pdf,.txt,.doc,.docx,.xls,.xlsx">
-								<div class="form-text">Images, PDF, Word, Excel ou texte brut, 10 Mo max.</div>
-								{{ form_rest(newForm) }}
-							</div>
-							<div class="modal-footer">
-								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-								<button type="submit" class="btn chat-primary-btn">
-									<i class="bi bi-send me-1"></i>Envoyer
-								</button>
-							</div>
-						</form>
-					</div>
-				</div>
 			</div>
 		</div>
 	</div>
