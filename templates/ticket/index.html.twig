@@ -41,69 +41,69 @@
 			</div>
 
 			{% if not isTrashView|default(false) %}
-				<form method="get" id="ticket-filter-form" class="row g-2 mt-3">
-					<input type="hidden" name="q" value="{{ searchQuery|default('') }}">
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">User (Admin)</label>
-						<select name="user" id="ticket-user-select" class="form-select form-select-sm">
-							<option value="">Tous les admins</option>
-							{% for admin in admins %}
-								<option value="{{ admin.id }}" {{ selectedUser == admin.id ? 'selected' : '' }}>
-									{{ admin.username }}
-								</option>
-							{% endfor %}
-						</select>
-					</div>
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Marchand</label>
-						<select name="marchand" id="ticket-marchand-select" class="form-select form-select-sm">
-							<option value="">Tous les tickets</option>
-							{% for marchand in marchands %}
-								<option value="{{ marchand.id }}" {{ selectedMarchand == marchand.id ? 'selected' : '' }}>
-									{{ marchand.username }}
-								</option>
-							{% endfor %}
-						</select>
-					</div>
+					<form method="get" id="ticket-filter-form" class="row g-2 mt-3">
+						<input type="hidden" name="q" value="{{ searchQuery|default('') }}">
+						<div class="col-sm-6 col-lg-4">
+							<label class="form-label text-uppercase small text-muted mb-1">User (Admin)</label>
+							<select name="user" id="ticket-user-select" class="form-select form-select-sm">
+								<option value="">Tous les admins</option>
+								{% for admin in admins %}
+									<option value="{{ admin.id }}" {{ selectedUser == admin.id ? 'selected' : '' }}>
+										{{ admin.username }}
+									</option>
+								{% endfor %}
+							</select>
+						</div>
+						<div class="col-sm-6 col-lg-4">
+							<label class="form-label text-uppercase small text-muted mb-1">Marchand</label>
+							<select name="marchand" id="ticket-marchand-select" class="form-select form-select-sm">
+								<option value="">Tous les tickets</option>
+								{% for marchand in marchands %}
+									<option value="{{ marchand.id }}" {{ selectedMarchand == marchand.id ? 'selected' : '' }}>
+										{{ marchand.username }}
+									</option>
+								{% endfor %}
+							</select>
+						</div>
 
-					<div class="col-sm-6 col-lg-4">
-						<label class="form-label text-uppercase small text-muted mb-1">Date</label>
-						<input type="date" name="date" id="ticket-date-input" class="form-control form-control-sm" value="{{ selectedDate|default('') }}">
-					</div>
+						<div class="col-sm-6 col-lg-4">
+							<label class="form-label text-uppercase small text-muted mb-1">Date</label>
+							<input type="date" name="date" id="ticket-date-input" class="form-control form-control-sm" value="{{ selectedDate|default('') }}">
+						</div>
 
-					{# <div class="col-sm-6 col-lg-4">
-															<label class="form-label text-uppercase small text-muted mb-1">Annee</label>
-															<select name="year" id="ticket-year-select" class="form-select form-select-sm" >
-										                    <option value="">Toutes les annees</option>
-															{% for year in availableYears|default([]) %}
-															<option value="{{ year }}" {{ selectedYear == year ? 'selected' : '' }}>{{ year }}</option>
-															{% endfor %} </select> </div>
+						{# <div class="col-sm-6 col-lg-4">
+																					<label class="form-label text-uppercase small text-muted mb-1">Annee</label>
+																					<select name="year" id="ticket-year-select" class="form-select form-select-sm" >
+																                    <option value="">Toutes les annees</option>
+																					{% for year in availableYears|default([]) %}
+																					<option value="{{ year }}" {{ selectedYear == year ? 'selected' : '' }}>{{ year }}</option>
+																					{% endfor %} </select> </div>
 
-										                    <div class="col-sm-6 col-lg-4">
-										                    <label class="form-label text-uppercase small text-muted mb-1">Mois</label>
-																																																			<select name="month" id="ticket-month-select" class="form-select form-select-sm">
-																																																				<option value="">Tous les mois</option>
-																																																				{% for monthValue, monthLabel in monthChoices|default([]) %}
-																																																					<option value="{{ monthValue }}" {{ selectedMonth == monthValue ? 'selected' : '' }}>{{ monthLabel }}</option>
-																																																				{% endfor %}
-																																																			</select>
-																																																		</div>
-																																																		<div class="col-sm-6 col-lg-4">
-																																																			<label class="form-label text-uppercase small text-muted mb-1">Trimestre</label>
-																																																			<select name="quarter" id="ticket-quarter-select" class="form-select form-select-sm">
-																																																				<option value="">Tous les trimestres</option>
-																																																				{% for quarterValue, quarterLabel in quarterChoices|default([]) %}
-																																																					<option value="{{ quarterValue }}" {{ selectedQuarter == quarterValue ? 'selected' : '' }}>{{ quarterLabel }}</option>
-																																																				{% endfor %}
-																																																			</select>
-																																																		</div> #}
+																                    <div class="col-sm-6 col-lg-4">
+																                    <label class="form-label text-uppercase small text-muted mb-1">Mois</label>
+																																																									<select name="month" id="ticket-month-select" class="form-select form-select-sm">
+																																																										<option value="">Tous les mois</option>
+																																																										{% for monthValue, monthLabel in monthChoices|default([]) %}
+																																																											<option value="{{ monthValue }}" {{ selectedMonth == monthValue ? 'selected' : '' }}>{{ monthLabel }}</option>
+																																																										{% endfor %}
+																																																									</select>
+																																																								</div>
+																																																								<div class="col-sm-6 col-lg-4">
+																																																									<label class="form-label text-uppercase small text-muted mb-1">Trimestre</label>
+																																																									<select name="quarter" id="ticket-quarter-select" class="form-select form-select-sm">
+																																																										<option value="">Tous les trimestres</option>
+																																																										{% for quarterValue, quarterLabel in quarterChoices|default([]) %}
+																																																											<option value="{{ quarterValue }}" {{ selectedQuarter == quarterValue ? 'selected' : '' }}>{{ quarterLabel }}</option>
+																																																										{% endfor %}
+																																																									</select>
+																																																								</div> #}
 
-					{# <div class="col-sm-6 col-lg-2 align-self-end">
-																																																			<button type="submit" class="btn btn-outline-primary btn-sm w-100 ticket-filter-submit">
-																																																				<i class="bi bi-filter me-1"></i>Filtrer
-																																																			</button>
-																																																		</div> #}
-				</form>
+						{# <div class="col-sm-6 col-lg-2 align-self-end">
+																																																									<button type="submit" class="btn btn-outline-primary btn-sm w-100 ticket-filter-submit">
+																																																										<i class="bi bi-filter me-1"></i>Filtrer
+																																																									</button>
+																																																								</div> #}
+					</form>
 			{% endif %}
 
 			<div class="row g-2 mt-3">
@@ -302,4 +302,3 @@
 	{% endif %}
 </div>
 {% endblock %}
-
